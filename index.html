@@ -13,6 +13,7 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/shepherd.js@11.0.1/dist/css/shepherd.css">
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.1/dist/chart.min.js"></script>
+	<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/shepherd.js@11.0.1/dist/js/shepherd.min.js"></script>
 
     <style>
@@ -1493,6 +1494,9 @@
     <script>
         // --- CONFIGURATION GLOBALE ---
         const STORAGE_KEY = 'comptes_dashboard_data';
+		const SUPABASE_URL = 'https://tqmyprncjpxsfgahousj.supabase.co';
+		const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRxbXlwcm5janB4c2ZnYWhvdXNqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU2NTEwNTYsImV4cCI6MjA4MTIyNzA1Nn0.UC37djXKafoLOSg0UM-m_HINuOS7-INfn9-l94vQtUA';
+		const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
         const RECURRENCE_KEY = 'ralph_recurrence_master_list';
         const THEME_KEY = 'budget_theme_preference';
         const CATEGORY_STORAGE_KEY = 'ralph_categories';
@@ -2628,60 +2632,172 @@
 		    });
 		}
 
-        function sauvegarderTransactions(showMessage = true) {
-            const currentMonthName = currentMonthInput.value.trim();
-            lireChampsBudget();
-            currentMonthData.soldeOuverture = parseFloat(soldeOuvertureInput.value) || 0;
-            if (!currentMonthName) {
-                showModal("Veuillez donner un nom à cet onglet (ex: Décembre 2025).", 'error');
-                return;
-            }
-            let allData = JSON.parse(localStorage.getItem(STORAGE_KEY)) || {};
-            allData[currentMonthName] = JSON.stringify(currentMonthData);
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(allData));
-            localStorage.setItem(LAST_SAVE_KEY, new Date().toISOString());
-            chargerListeMois(currentMonthName);
-            mettreAJourSuiviBudget();
-            mettreAJourGraphique();
-            mettreAJourGraphiqueHistorique();
-            mettreAJourTimeline();
-            if (showMessage) {
-                showToast(`Onglet "${currentMonthName}" sauvegardé !`, 'success');
-            }
-        }
+		async function sauvegarderTransactions(showMessage = true) {
+		    const currentMonthName = currentMonthInput.value.trim();
+		    lireChampsBudget();
+		    currentMonthData.soldeOuverture = parseFloat(soldeOuvertureInput.value) || 0;
+    
+		    if (!currentMonthName) {
+		        showModal("Veuillez donner un nom à cet onglet (ex: Décembre 2025).", 'error');
+		        return;
+		    }
 
-		function chargerTransactions() {
+		    try {
+		        // 🔥 SAUVEGARDER DANS SUPABASE
+		        // 1. Vérifier si le mois existe déjà
+		        const { data: existingMonth } = await supabase
+		            .from('months')
+		            .select('*')
+		            .eq('user_id', 'demo-user')
+		            .eq('month_name', currentMonthName)
+		            .single();
+
+		        if (existingMonth) {
+		            // Mettre à jour le mois existant
+		            await supabase
+		                .from('months')
+		                .update({
+		                    solde_ouverture: currentMonthData.soldeOuverture,
+		                    budgets: currentMonthData.budgets
+		                })
+		                .eq('user_id', 'demo-user')
+		                .eq('month_name', currentMonthName);
+		        } else {
+		            // Créer un nouveau mois
+		            await supabase
+		                .from('months')
+		                .insert({
+		                    user_id: 'demo-user',
+		                    month_name: currentMonthName,
+		                    solde_ouverture: currentMonthData.soldeOuverture,
+		                    budgets: currentMonthData.budgets
+		                });
+		        }
+
+		        // 2. Supprimer les anciennes transactions de ce mois
+		        await supabase
+		            .from('transactions')
+		            .delete()
+		            .eq('user_id', 'demo-user')
+		            .like('description', `%${currentMonthName}%`);
+
+		        // 3. Insérer les nouvelles transactions
+		        if (currentMonthData.transactions.length > 0) {
+		            const transactionsToInsert = currentMonthData.transactions.map(t => ({
+		                user_id: 'demo-user',
+		                date: t.date,
+		                description: `${currentMonthName} - ${t.description}`,
+		                montant: t.montant,
+		                type: t.type,
+		                categorie: t.categorie,
+		                compte: t.compte,
+		                recurrent: t.recurrent || false
+		            }));
+
+		            await supabase
+		                .from('transactions')
+		                .insert(transactionsToInsert);
+		        }
+
+		        // ✅ Garder aussi localStorage comme backup
+		        let allData = JSON.parse(localStorage.getItem(STORAGE_KEY)) || {};
+		        allData[currentMonthName] = JSON.stringify(currentMonthData);
+		        localStorage.setItem(STORAGE_KEY, JSON.stringify(allData));
+		        localStorage.setItem(LAST_SAVE_KEY, new Date().toISOString());
+
+		        chargerListeMois(currentMonthName);
+		        mettreAJourSuiviBudget();
+		        mettreAJourGraphique();
+		        mettreAJourGraphiqueHistorique();
+		        mettreAJourTimeline();
+        
+		        if (showMessage) {
+		            showToast(`Onglet "${currentMonthName}" sauvegardé dans le cloud !`, 'success');
+		        }
+		    } catch (error) {
+		        console.error('Erreur Supabase:', error);
+		        showModal("Erreur lors de la sauvegarde : " + error.message, 'error');
+		    }
+		}
+
+		async function chargerTransactions() {
 		    const monthToLoad = currentMonthInput.value;
+    
 		    if (monthToLoad === 'new') {
 		        gererNouveauMois();
 		        return;
 		    }
-		    let allData = JSON.parse(localStorage.getItem(STORAGE_KEY)) || {};
-		    if (allData[monthToLoad]) {
-		        currentMonthData = JSON.parse(allData[monthToLoad]);
-		        currentMonthData.transactions = currentMonthData.transactions || [];
-		        currentMonthData.soldeOuverture = parseFloat(currentMonthData.soldeOuverture) || 0;
-		        currentMonthData.budgets = currentMonthData.budgets || {};
+
+		    try {
+		        // 🔥 CHARGER DEPUIS SUPABASE
+		        // 1. Charger les infos du mois
+		        const { data: monthData, error: monthError } = await supabase
+		            .from('months')
+		            .select('*')
+		            .eq('user_id', 'demo-user')
+		            .eq('month_name', monthToLoad)
+		            .single();
+
+		        if (monthError && monthError.code !== 'PGRST116') {
+		            throw monthError;
+		        }
+
+		        // 2. Charger les transactions du mois
+		        const { data: transactionsData, error: transError } = await supabase
+		            .from('transactions')
+		            .select('*')
+		            .eq('user_id', 'demo-user')
+		            .like('description', `%${monthToLoad}%`)
+		            .order('date', { ascending: false });
+
+		        if (transError) throw transError;
+
+		        // 3. Reconstruire currentMonthData
+		        if (monthData) {
+		            currentMonthData = {
+		                transactions: (transactionsData || []).map(t => ({
+		                    date: t.date,
+		                    description: t.description.replace(`${monthToLoad} - `, ''),
+		                    montant: parseFloat(t.montant),
+		                    type: t.type,
+		                    categorie: t.categorie,
+		                    compte: t.compte,
+		                    recurrent: t.recurrent
+		                })),
+		                soldeOuverture: parseFloat(monthData.solde_ouverture) || 0,
+		                budgets: monthData.budgets || {}
+		            };
+		        } else {
+		            // Fallback sur localStorage si pas dans Supabase
+		            let allData = JSON.parse(localStorage.getItem(STORAGE_KEY)) || {};
+		            if (allData[monthToLoad]) {
+		                currentMonthData = JSON.parse(allData[monthToLoad]);
+		            } else {
+		                showModal(`Erreur: Les données pour "${monthToLoad}" sont introuvables.`, 'error');
+		                return;
+		            }
+		        }
+
 		        transactions = currentMonthData.transactions;
 		        currentMonthInput.value = monthToLoad;
 		        soldeOuvertureInput.value = currentMonthData.soldeOuverture.toFixed(2);
 		        genererChampsBudget();
 		        rechargerTableau();
 		        mettreAJourTimeline();
-        
-		        // ✅ AJOUTEZ CETTE LIGNE
+
 		        if (document.getElementById('calendar-screen').classList.contains('active')) {
 		            afficherCalendrier();
 		        }
-        
+
 		        if (document.getElementById('analysis-screen').classList.contains('active')) {
 		            mettreAJourGraphique();
 		            mettreAJourGraphiqueHistorique();
 		            mettreAJourSoldeEtTotaux();
 		            mettreAJourSuiviBudget();
 		        }
-		    } else {
-		        showModal(`Erreur: Les données pour "${monthToLoad}" sont introuvables.`, 'error');
+		    } catch (error) {
+		        console.error('Erreur lors du chargement:', error);
+		        showModal("Erreur lors du chargement : " + error.message, 'error');
 		    }
 		}
 
