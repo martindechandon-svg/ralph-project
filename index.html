@@ -1197,6 +1197,10 @@
         <div class="theme-switch" onclick="toggleTheme()"></div>
         <span id="light-label" class="theme-label">Light</span>
     </div>
+	
+	<button onclick="logout()" style="position: absolute; top: 40px; right: 180px; background: var(--neon-danger); color: white; border: none; padding: 8px 15px; border-radius: 8px; cursor: pointer; font-weight: 600; transition: all 0.3s;">
+	    <i class="fas fa-sign-out-alt"></i> Déconnexion
+	</button>
 
 
     <div id="category-modal" role="dialog" aria-hidden="true">
@@ -3370,24 +3374,58 @@
                 openNewMonthModal();
             }
         });
-        // --- INITIALISATION ---
-        window.onload = function() {
-            loadThemePreference();
-            chargerSelecteurs();
-            chargerListeMois();
-            chargerRecurrences();
-            setupAutoSave();
-			mettreAJourTimeline();
-			initialiserFiltres();
-			loadActiveScreen();
+		// À ajouter APRÈS la déclaration de supabase et AVANT window.onload
 
+		// Vérification de l'authentification
+		let currentUser = null;
 
-            const lastSave = localStorage.getItem(LAST_SAVE_KEY);
-            if (lastSave) {
-                const lastSaveDate = new Date(lastSave);
-                showToast(`Dernière sauvegarde : ${lastSaveDate.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}`, 'info', 4000);
-            }
-        };
+		async function checkAuth() {
+		    const { data: { session } } = await supabase.auth.getSession();
+    
+		    if (!session) {
+		        // Pas connecté, rediriger vers auth.html
+		        window.location.href = 'auth.html';
+		        return false;
+		    }
+    
+		    currentUser = session.user;
+		    console.log('✅ Utilisateur connecté:', currentUser.email);
+    
+		    // Remplacer 'demo-user' par l'ID réel de l'utilisateur
+		    return true;
+		}
+
+		// Fonction de déconnexion
+		async function logout() {
+		    const confirmed = confirm('Voulez-vous vraiment vous déconnecter ?');
+		    if (!confirmed) return;
+    
+		    await supabase.auth.signOut();
+		    window.location.href = 'auth.html';
+		}
+
+		// --- INITIALISATION (MODIFIÉ) ---
+		window.onload = async function() {
+		    // ✅ VÉRIFIER L'AUTHENTIFICATION D'ABORD
+		    const isAuth = await checkAuth();
+		    if (!isAuth) return; // Arrêter si pas connecté
+    
+		    // Ton code existant...
+		    loadThemePreference();
+		    chargerSelecteurs();
+		    chargerListeMois();
+		    chargerRecurrences();
+		    setupAutoSave();
+		    mettreAJourTimeline();
+		    initialiserFiltres();
+		    loadActiveScreen();
+
+		    const lastSave = localStorage.getItem(LAST_SAVE_KEY);
+		    if (lastSave) {
+		        const lastSaveDate = new Date(lastSave);
+		        showToast(`Dernière sauvegarde : ${lastSaveDate.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}`, 'info', 4000);
+		    }
+		};
     </script>
 		<script>
 		    window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
