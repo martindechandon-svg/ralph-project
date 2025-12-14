@@ -1329,41 +1329,41 @@
 
             <hr class="separator">
 
-            <h2><i class="fas fa-plus-circle"></i> Ajouter une Transaction </h2>
-            <form id="transaction-form">
-                <input type="date" id="date" required value="2026-01-01">
-                <input type="text" id="description" placeholder="Description (ex: Cadeau, Courses)" required>
-                <input type="number" id="montant" placeholder="Montant" required min="0" step="0.01">
-                <select type="select" id="type">
-                    <option value="revenu">Revenu</option>
-                    <option value="depense" selected>Dépense</option>
-                </select>
-                <select id="categorie" required></select>
-                <select id="compte" required></select>
-                <button type="submit" class="app-btn add-btn" style="grid-column: span 1;"><i class="fas fa-plus"></i> Ajouter</button>
-            </form>
+<h2><i class="fas fa-plus-circle"></i> Ajouter une Transaction </h2>
+<form id="transaction-form">
+    <input type="date" id="date" required value="2026-01-01">
+    <input type="text" id="description" placeholder="Description (ex: Cadeau, Courses)" required>
+    <input type="number" id="montant" placeholder="Montant" required min="0" step="0.01">
+    <select type="select" id="type">
+        <option value="revenu">Revenu</option>
+        <option value="depense" selected>Dépense</option>
+    </select>
+    <select id="categorie" required></select>
+    <select id="compte" required></select>
+    <button type="submit" class="app-btn add-btn" style="grid-column: span 1;"><i class="fas fa-plus"></i> Ajouter</button>
+</form>
 
             <hr class="separator">
 
-            <h2><i class="fas fa-list-alt"></i> Historique des Transactions (<span id="current-tab-name" style="color:var(--neon-success);">Janvier 2026</span>)</h2>
-			
-			<div class="filter-section" style="background-color: var(--input-bg); padding: 15px; border-radius: var(--border-radius); margin-bottom: 20px; display: flex; flex-wrap: wrap; gap: 10px; align-items: center;">
-			    <input type="text" id="search-input" placeholder="🔍 Rechercher..." style="flex: 1; min-width: 200px;">
-			    <select id="filter-type" style="min-width: 120px;">
-			        <option value="">Tous types</option>
-			        <option value="revenu">Revenus</option>
-			        <option value="depense">Dépenses</option>
-			    </select>
-			    <select id="filter-category" style="min-width: 150px;">
-			        <option value="">Toutes catégories</option>
-			    </select>
-			    <select id="filter-account" style="min-width: 150px;">
-			        <option value="">Tous comptes</option>
-			    </select>
-			    <button class="app-btn compact-switch-btn" onclick="reinitialiserFiltres()" style="padding: 8px 12px;">
-			        <i class="fas fa-redo"></i> Réinitialiser
-			    </button>
-			</div>
+<h2><i class="fas fa-list-alt"></i> Historique des Transactions (<span id="current-tab-name" style="color:var(--neon-success);">Janvier 2026</span>)</h2>
+
+<div id="transaction-form" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; padding: 20px; border-radius: var(--border-radius); margin-bottom: 20px; background-color: var(--input-bg);">
+    <input type="text" id="search-input" placeholder="🔍 Rechercher..." style="width: 100%; background-color: var(--card-color);">
+    <select id="filter-type" style="width: 100%; background-color: var(--card-color);">
+        <option value="">Tous types</option>
+        <option value="revenu">Revenus</option>
+        <option value="depense">Dépenses</option>
+    </select>
+    <select id="filter-category" style="width: 100%; background-color: var(--card-color);">
+        <option value="">Toutes catégories</option>
+    </select>
+    <select id="filter-account" style="width: 100%; background-color: var(--card-color);">
+        <option value="">Tous comptes</option>
+    </select>
+    <button class="app-btn compact-switch-btn" onclick="reinitialiserFiltres()" style="padding: 12px 20px;">
+        <i class="fas fa-redo"></i> Réinitialiser
+    </button>
+</div>
             <table>
 <thead>
     <tr>
