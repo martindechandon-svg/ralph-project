@@ -2653,13 +2653,18 @@
 		        return;
 		    }
 
+		    if (!currentUser) {
+		        showModal("Erreur: utilisateur non connecté.", 'error');
+		        return;
+		    }
+
 		    try {
 		        // 🔥 SAUVEGARDER DANS SUPABASE
 		        // 1. Vérifier si le mois existe déjà
 		        const { data: existingMonth } = await supabase
 		            .from('months')
 		            .select('*')
-		            .eq('user_id', 'demo-user')
+		            .eq('user_id', currentUser.id)
 		            .eq('month_name', currentMonthName)
 		            .single();
 
@@ -2671,14 +2676,14 @@
 		                    solde_ouverture: currentMonthData.soldeOuverture,
 		                    budgets: currentMonthData.budgets
 		                })
-		                .eq('user_id', 'demo-user')
+		                .eq('user_id', currentUser.id)
 		                .eq('month_name', currentMonthName);
 		        } else {
 		            // Créer un nouveau mois
 		            await supabase
 		                .from('months')
 		                .insert({
-		                    user_id: 'demo-user',
+		                    user_id: currentUser.id,
 		                    month_name: currentMonthName,
 		                    solde_ouverture: currentMonthData.soldeOuverture,
 		                    budgets: currentMonthData.budgets
@@ -2689,15 +2694,16 @@
 		        await supabase
 		            .from('transactions')
 		            .delete()
-		            .eq('user_id', 'demo-user')
-		            .like('description', `%${currentMonthName}%`);
+		            .eq('user_id', currentUser.id)
+		            .eq('month_name', currentMonthName);
 
 		        // 3. Insérer les nouvelles transactions
 		        if (currentMonthData.transactions.length > 0) {
 		            const transactionsToInsert = currentMonthData.transactions.map(t => ({
-		                user_id: 'demo-user',
+		                user_id: currentUser.id,
+		                month_name: currentMonthName,
 		                date: t.date,
-		                description: `${currentMonthName} - ${t.description}`,
+		                description: t.description,
 		                montant: t.montant,
 		                type: t.type,
 		                categorie: t.categorie,
@@ -2710,7 +2716,7 @@
 		                .insert(transactionsToInsert);
 		        }
 
-		        // ✅ Garder aussi localStorage comme backup
+		        // ✅ Backup dans localStorage
 		        let allData = JSON.parse(localStorage.getItem(STORAGE_KEY)) || {};
 		        allData[currentMonthName] = JSON.stringify(currentMonthData);
 		        localStorage.setItem(STORAGE_KEY, JSON.stringify(allData));
@@ -2720,10 +2726,11 @@
 		        mettreAJourSuiviBudget();
 		        mettreAJourGraphique();
 		        mettreAJourGraphiqueHistorique();
+		        mettreAJourGraphiqueRevenusDepenses();
 		        mettreAJourTimeline();
         
 		        if (showMessage) {
-		            showToast(`Onglet "${currentMonthName}" sauvegardé dans le cloud !`, 'success');
+		            showToast(`Onglet "${currentMonthName}" sauvegardé dans le cloud ! ☁️`, 'success');
 		        }
 		    } catch (error) {
 		        console.error('Erreur Supabase:', error);
@@ -2739,13 +2746,18 @@
 		        return;
 		    }
 
+		    if (!currentUser) {
+		        showModal("Erreur: utilisateur non connecté.", 'error');
+		        return;
+		    }
+
 		    try {
 		        // 🔥 CHARGER DEPUIS SUPABASE
 		        // 1. Charger les infos du mois
 		        const { data: monthData, error: monthError } = await supabase
 		            .from('months')
 		            .select('*')
-		            .eq('user_id', 'demo-user')
+		            .eq('user_id', currentUser.id)
 		            .eq('month_name', monthToLoad)
 		            .single();
 
@@ -2757,8 +2769,8 @@
 		        const { data: transactionsData, error: transError } = await supabase
 		            .from('transactions')
 		            .select('*')
-		            .eq('user_id', 'demo-user')
-		            .like('description', `%${monthToLoad}%`)
+		            .eq('user_id', currentUser.id)
+		            .eq('month_name', monthToLoad)
 		            .order('date', { ascending: false });
 
 		        if (transError) throw transError;
@@ -2768,7 +2780,7 @@
 		            currentMonthData = {
 		                transactions: (transactionsData || []).map(t => ({
 		                    date: t.date,
-		                    description: t.description.replace(`${monthToLoad} - `, ''),
+		                    description: t.description,
 		                    montant: parseFloat(t.montant),
 		                    type: t.type,
 		                    categorie: t.categorie,
@@ -2783,6 +2795,10 @@
 		            let allData = JSON.parse(localStorage.getItem(STORAGE_KEY)) || {};
 		            if (allData[monthToLoad]) {
 		                currentMonthData = JSON.parse(allData[monthToLoad]);
+		                // Proposer de migrer vers Supabase
+		                if (confirm(`Ce mois existe en local. Voulez-vous le sauvegarder dans le cloud ?`)) {
+		                    await sauvegarderTransactions(false);
+		                }
 		            } else {
 		                showModal(`Erreur: Les données pour "${monthToLoad}" sont introuvables.`, 'error');
 		                return;
@@ -2915,42 +2931,59 @@
             return dateA - dateB;
         }
 
-		function chargerListeMois(selectedMonth = null) {
-		    const selectMonth = document.getElementById('select-month');
-    
-		    if (!selectMonth) {
-		        // Pas d'erreur, juste un retour silencieux
-		        return;
+		async function chargerListeMois(selectedMonth = null) {
+		    if (!currentUser) return;
+
+		    try {
+		        // 🔥 CHARGER LA LISTE DEPUIS SUPABASE
+		        const { data: monthsData, error } = await supabase
+		            .from('months')
+		            .select('month_name, solde_ouverture, budgets')
+		            .eq('user_id', currentUser.id)
+		            .order('created_at', { ascending: true });
+
+		        if (error) throw error;
+
+		        const monthNames = monthsData.map(m => m.month_name);
+
+		        // Backup dans localStorage
+		        let allData = {};
+		        for (const monthData of monthsData) {
+		            const { data: transactions } = await supabase
+		                .from('transactions')
+		                .select('*')
+		                .eq('user_id', currentUser.id)
+		                .eq('month_name', monthData.month_name);
+
+		            allData[monthData.month_name] = JSON.stringify({
+		                transactions: transactions || [],
+		                soldeOuverture: monthData.solde_ouverture,
+		                budgets: monthData.budgets
+		            });
+		        }
+		        localStorage.setItem(STORAGE_KEY, JSON.stringify(allData));
+
+		        if (selectedMonth) {
+		            currentMonthInput.value = selectedMonth;
+		        } else if (monthNames.length > 0) {
+		            currentMonthInput.value = monthNames[monthNames.length - 1];
+		        } else {
+		            currentMonthInput.value = 'new';
+		        }
+
+		        if (currentMonthInput.value !== 'new') {
+		            await chargerTransactions();
+		        } else {
+		            gererNouveauMois();
+		        }
+
+		        monthPositionIndicator.textContent = `${monthNames.length} mois`;
+		        mettreAJourTimeline();
+
+		    } catch (error) {
+		        console.error('Erreur chargement liste mois:', error);
+		        showModal("Erreur lors du chargement des mois.", 'error');
 		    }
-    
-		    let allData = JSON.parse(localStorage.getItem(STORAGE_KEY)) || {};
-		    const monthNames = Object.keys(allData).sort(comparerMois);
-		    selectMonth.innerHTML = '';
-		    const newOption = document.createElement('option');
-		    newOption.value = 'new';
-		    newOption.textContent = '--- Nouveau Mois ---';
-		    selectMonth.appendChild(newOption);
-		    monthNames.forEach(month => {
-		        const option = document.createElement('option');
-		        option.value = month;
-		        option.textContent = month;
-		        selectMonth.appendChild(option);
-		    });
-		    if (selectedMonth) {
-		        currentMonthInput.value = selectedMonth;
-		    } else if (monthNames.length > 0) {
-		        currentMonthInput.value = monthNames[0];
-		    } else {
-		        currentMonthInput.value = 'new';
-		    }
-		    if (currentMonthInput.value !== 'new') {
-		         chargerTransactions();
-		    } else {
-		         gererNouveauMois();
-		    }
-		    monthPositionIndicator.textContent = `${monthNames.length > 0 ? Object.keys(allData).length : 0}/${monthNames.length} mois`;
-			mettreAJourTimeline();
-			
 		}
 
         function naviguerMois(direction) {
@@ -3401,6 +3434,53 @@
 		    // Remplacer 'demo-user' par l'ID réel de l'utilisateur
 		    return true;
 		}
+		// Migration automatique des données localStorage vers Supabase
+		async function migrateLocalStorageToSupabase() {
+		    if (!currentUser) return;
+
+		    const localData = JSON.parse(localStorage.getItem(STORAGE_KEY)) || {};
+		    const monthNames = Object.keys(localData);
+
+		    if (monthNames.length === 0) return;
+
+		    // Vérifier si des données existent déjà dans Supabase
+		    const { data: existingMonths } = await supabase
+		        .from('months')
+		        .select('month_name')
+		        .eq('user_id', currentUser.id);
+
+		    if (existingMonths && existingMonths.length > 0) {
+		        // Données déjà migrées
+		        return;
+		    }
+
+		    // Proposer la migration
+		    const migrate = confirm(
+		        `Nous avons détecté ${monthNames.length} mois sauvegardés localement.\n\n` +
+		        `Voulez-vous les transférer dans le cloud pour y accéder depuis tous vos appareils ?`
+		    );
+
+		    if (!migrate) return;
+
+		    showToast('Migration en cours... ⏳', 'info', 5000);
+
+		    try {
+		        for (const monthName of monthNames) {
+		            const monthData = JSON.parse(localData[monthName]);
+		            currentMonthData = monthData;
+		            currentMonthInput.value = monthName;
+		            soldeOuvertureInput.value = monthData.soldeOuverture;
+		            await sauvegarderTransactions(false);
+		        }
+
+		        showModal(`✅ Migration réussie ! ${monthNames.length} mois transférés dans le cloud.`, 'success', 5000);
+		        await chargerListeMois();
+
+		    } catch (error) {
+		        console.error('Erreur migration:', error);
+		        showModal('Erreur lors de la migration. Vos données locales sont toujours disponibles.', 'error');
+		    }
+		}
 
 		// Fonction de déconnexion
 		async function logout() {
@@ -3413,14 +3493,16 @@
 
 		// --- INITIALISATION (MODIFIÉ) ---
 		window.onload = async function() {
-		    // ✅ VÉRIFIER L'AUTHENTIFICATION D'ABORD
 		    const isAuth = await checkAuth();
-		    if (!isAuth) return; // Arrêter si pas connecté
+		    if (!isAuth) return;
     
-		    // Ton code existant...
 		    loadThemePreference();
 		    chargerSelecteurs();
-		    chargerListeMois();
+    
+		    // 🔥 MIGRATION AUTOMATIQUE
+		    await migrateLocalStorageToSupabase();
+    
+		    await chargerListeMois();
 		    chargerRecurrences();
 		    setupAutoSave();
 		    mettreAJourTimeline();
