@@ -1,30 +1,38 @@
 /**
- * Vercel Web Analytics Client-side Initialization
+ * Vercel Web Analytics & Speed Insights Client-side Initialization
  * 
- * This file initializes Vercel Web Analytics on the client side.
- * It's loaded via the script tag in HTML files: /_vercel/insights/script.js
+ * This file initializes both Vercel Web Analytics and Speed Insights on the client side.
  * 
- * The inject() function from @vercel/analytics is automatically called
- * when the Vercel insights script loads if the project is deployed on Vercel.
+ * Vercel Web Analytics:
+ * - Loaded via the script tag in HTML files: /_vercel/insights/script.js
+ * - The inject() function is automatically called when deployed on Vercel
  * 
- * For development or non-Vercel deployments, this ensures analytics tracking
- * is properly configured.
+ * Speed Insights:
+ * - Imported from @vercel/speed-insights package
+ * - Tracks Core Web Vitals and performance metrics
+ * - Must run on client side only
  */
 
-(function() {
+(async function() {
   'use strict';
 
-  // Initialize Vercel Web Analytics
-  // When deployed on Vercel, the /_vercel/insights/script.js will automatically
-  // handle analytics injection. For development environments, this script ensures
-  // the analytics module is ready.
-
+  // Initialize Vercel Web Analytics and Speed Insights
   if (typeof window !== 'undefined') {
     // Mark that analytics initialization has been attempted
     window.__vercelAnalyticsInitialized = true;
 
+    // Initialize Speed Insights for performance monitoring
+    try {
+      // Dynamically import Speed Insights
+      const { injectSpeedInsights } = await import('@vercel/speed-insights');
+      injectSpeedInsights();
+      console.debug('[Vercel Speed Insights] Initialized successfully');
+    } catch (error) {
+      console.error('[Vercel Speed Insights] Initialization failed:', error);
+    }
+
     // Log initialization in development mode
-    if (process.env.NODE_ENV === 'development') {
+    if (typeof process !== 'undefined' && process.env && process.env.NODE_ENV === 'development') {
       console.debug('[Vercel Analytics] Client-side analytics initialized');
     }
   }
