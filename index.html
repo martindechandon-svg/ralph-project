@@ -1345,7 +1345,6 @@
             <div class="current-month-display">
                 <i class="fas fa-calendar-alt"></i>
                 <span id="current-month-display">Janvier 2026</span>
-                <small id="month-position-indicator">1/1 mois</small>
             </div>
             <button class="nav-arrow" onclick="naviguerMois(1)" title="Mois Suivant">
                 <i class="fas fa-chevron-right"></i>
@@ -3130,8 +3129,6 @@
 		        } else {
 		            gererNouveauMois();
 		        }
-
-		        monthPositionIndicator.textContent = `${monthNames.length} mois`;
 		        mettreAJourTimeline();
 
 		    } catch (error) {
