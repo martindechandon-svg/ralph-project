@@ -266,6 +266,31 @@
         body.light-mode #recurrence-form select {
             background-color: var(--input-bg);
         }
+		/* Style pour le conteneur de filtres */
+		.filter-container {
+		    display: grid;
+		    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+		    gap: 15px;
+		    padding: 20px;
+		    border-radius: var(--border-radius);
+		    margin-bottom: 20px;
+		    background-color: var(--input-bg);
+		}
+
+		.filter-container input, .filter-container select {
+		    width: 100%;
+		    background-color: var(--card-color);
+		}
+
+		body.light-mode .filter-container {
+		    background-color: var(--card-color);
+		    border: 1px solid var(--border-color);
+		}
+
+		body.light-mode .filter-container input,
+		body.light-mode .filter-container select {
+		    background-color: var(--input-bg);
+		}
 
         .gestion-onglets {
             background-color: var(--input-bg);
@@ -1194,6 +1219,15 @@
             .month-timeline {
                 justify-content: flex-start;
             }
+		    #main-nav {
+		        flex-direction: column;
+		    }
+    
+		    #main-nav .nav-btn,
+		    #main-nav button {
+		        width: 100%;
+		        justify-content: center;
+		    }
         }
     </style>
 </head>
@@ -1347,7 +1381,7 @@
 
 <h2><i class="fas fa-list-alt"></i> Historique des Transactions (<span id="current-tab-name" style="color:var(--neon-success);">Janvier 2026</span>)</h2>
 
-<div id="transaction-form" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; padding: 20px; border-radius: var(--border-radius); margin-bottom: 20px; background-color: var(--input-bg);">
+<div class="filter-container" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; padding: 20px; border-radius: var(--border-radius); margin-bottom: 20px; background-color: var(--input-bg);">
     <input type="text" id="search-input" placeholder="🔍 Rechercher..." style="width: 100%; background-color: var(--card-color);">
     <select id="filter-type" style="width: 100%; background-color: var(--card-color);">
         <option value="">Tous types</option>
@@ -1360,8 +1394,8 @@
     <select id="filter-account" style="width: 100%; background-color: var(--card-color);">
         <option value="">Tous comptes</option>
     </select>
-    <button class="app-btn compact-switch-btn" onclick="reinitialiserFiltres()" style="padding: 12px 20px;">
-        <i class="fas fa-redo"></i> Réinitialiser
+<button class="app-btn save-btn" onclick="reinitialiserFiltres()" style="padding: 12px 20px; text-transform: none;">
+	        <i class="fas fa-redo"></i> Réinitialiser
     </button>
 </div>
             <table>
