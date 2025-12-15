@@ -1267,77 +1267,359 @@
 		        width: 100%;
 		        justify-content: center;
 		    }
+			/* ===== RESPONSIVE MOBILE UNIQUEMENT ===== */
 			@media (max-width: 768px) {
-			    /* Bouton burger */
+			    /* Reset du body et container */
+			    body {
+			        padding: 0 !important;
+			        font-size: 14px;
+			    }
+    
+			    .container {
+			        padding: 15px 10px !important;
+			        margin: 0 !important;
+			        border-radius: 0 !important;
+			        min-height: 100vh;
+			    }
+    
+			    /* Burger menu */
 			    #burger-menu {
 			        display: flex !important;
 			        align-items: center;
 			        justify-content: center;
 			        position: fixed;
-			        top: 15px;
-			        right: 15px;
-			        z-index: 2000;
-			        width: 50px;
-			        height: 50px;
+			        top: 10px;
+			        right: 10px;
+			        z-index: 2001;
+			        width: 48px;
+			        height: 48px;
 			        border: none;
 			        border-radius: 12px;
 			        background: var(--neon-accent);
 			        color: var(--card-color);
-			        font-size: 1.5em;
-			        cursor: pointer;
+			        font-size: 1.4em;
 			        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-			        transition: all 0.3s;
 			    }
     
-			    #burger-menu:active {
-			        transform: scale(0.95);
-			    }
-    
-			    /* Menu de navigation mobile */
+			    /* Navigation mobile en overlay */
 			    #main-nav {
 			        position: fixed;
 			        top: 0;
 			        right: -100%;
-			        width: 80%;
-			        max-width: 300px;
+			        width: 85%;
+			        max-width: 320px;
 			        height: 100vh;
 			        background: var(--card-color);
 			        box-shadow: -4px 0 20px rgba(0, 0, 0, 0.5);
-			        z-index: 1999;
+			        z-index: 2000;
 			        flex-direction: column;
-			        padding: 80px 20px 20px;
-			        gap: 10px;
+			        padding: 70px 15px 20px;
+			        gap: 8px;
 			        overflow-y: auto;
 			        transition: right 0.3s ease;
+			        border-left: 2px solid var(--neon-accent);
 			    }
     
 			    #main-nav.open {
 			        right: 0;
 			    }
     
-			    #main-nav .nav-btn {
+			    #main-nav .nav-btn,
+			    #main-nav button {
 			        width: 100%;
 			        justify-content: flex-start;
-			        padding: 15px 20px;
-			        font-size: 1em;
+			        padding: 14px 16px;
+			        font-size: 0.95em;
+			        text-align: left;
 			    }
     
-			    /* Overlay sombre derrière le menu */
-			    #menu-overlay {
-			        display: none;
-			        position: fixed;
-			        top: 0;
-			        left: 0;
+			    /* Theme switcher */
+			    #theme-switcher {
+			        position: relative;
+			        top: auto;
+			        right: auto;
+			        margin: 10px 0 15px;
+			        justify-content: center;
+			    }
+    
+			    /* Titre principal */
+			    h1 {
+			        font-size: 1.6em !important;
+			        flex-direction: row !important;
+			        flex-wrap: wrap;
+			        margin-bottom: 15px;
+			    }
+    
+			    h1 > div:first-child {
 			        width: 100%;
-			        height: 100vh;
-			        background: rgba(0, 0, 0, 0.5);
-			        z-index: 1998;
+			        padding-top: 0 !important;
 			    }
     
-			    #menu-overlay.active {
+			    .app-logo {
+			        width: 50px !important;
+			        height: 50px !important;
+			        margin-right: 8px;
+			    }
+    
+			    h2 {
+			        font-size: 1.4em !important;
+			        margin-bottom: 15px;
+			        word-break: break-word;
+			    }
+    
+			    h3 {
+			        font-size: 1.1em !important;
+			    }
+    
+			    /* Solde persistant */
+			    #persistent-balance {
+			        position: relative;
+			        float: none !important;
+			        width: 100% !important;
+			        max-width: 100% !important;
+			        margin: 0 0 15px 0;
+			        padding: 12px 15px;
+			        font-size: 1em;
+			        justify-content: space-between;
+			        flex-wrap: wrap;
+			    }
+    
+			    #persistent-balance .balance-amount {
+			        font-size: 1.2em;
+			    }
+    
+			    /* Navigation mois */
+			    .month-navigation {
+			        flex-direction: column;
+			        gap: 10px;
+			        padding: 12px;
+			        margin-bottom: 15px;
+			    }
+    
+			    .nav-arrow {
+			        width: 45px;
+			        height: 45px;
+			        font-size: 1.2em;
+			    }
+    
+			    .current-month-display {
+			        font-size: 1.2em;
+			        min-width: auto;
+			        text-align: center;
+			    }
+    
+			    .new-month-btn {
+			        width: 100%;
+			        padding: 12px 16px;
+			        justify-content: center;
+			    }
+    
+			    /* Timeline des mois */
+			    .month-timeline {
+			        gap: 8px;
+			        padding: 10px 5px;
+			        overflow-x: auto;
+			        -webkit-overflow-scrolling: touch;
+			    }
+    
+			    .timeline-month {
+			        min-width: 100px;
+			        padding: 10px;
+			        font-size: 0.85em;
+			    }
+    
+			    /* Formulaires */
+			    #transaction-form,
+			    #recurrence-form,
+			    .filter-container,
+			    #budget-form {
+			        grid-template-columns: 1fr !important;
+			        gap: 10px !important;
+			        padding: 15px !important;
+			    }
+    
+			    #transaction-form input,
+			    #transaction-form select,
+			    #recurrence-form input,
+			    #recurrence-form select,
+			    .filter-container input,
+			    .filter-container select,
+			    #budget-form input {
+			        width: 100% !important;
+			        font-size: 16px !important; /* Empêche le zoom sur iOS */
+			        padding: 12px !important;
+			        min-height: 44px;
+			    }
+    
+			    /* Boutons */
+			    .app-btn {
+			        width: 100% !important;
+			        min-height: 48px;
+			        padding: 14px 20px;
+			        font-size: 1em;
+			        margin-top: 5px;
+			    }
+    
+			    /* Tableaux scrollables */
+			    table {
+			        display: block;
+			        width: 100%;
+			        overflow-x: auto;
+			        -webkit-overflow-scrolling: touch;
+			        font-size: 0.85em;
+			    }
+    
+			    thead, tbody, tr {
 			        display: block;
 			    }
+    
+			    thead tr {
+			        position: absolute;
+			        top: -9999px;
+			        left: -9999px;
+			    }
+    
+			    tr {
+			        margin-bottom: 15px;
+			        border: 1px solid var(--border-color);
+			        border-radius: 8px;
+			        padding: 10px;
+			        background: var(--input-bg);
+			    }
+    
+			    td {
+			        display: block;
+			        text-align: right;
+			        padding: 8px 10px !important;
+			        position: relative;
+			        padding-left: 50% !important;
+			        border: none !important;
+			        min-width: auto !important;
+			    }
+    
+			    td:before {
+			        content: attr(data-label);
+			        position: absolute;
+			        left: 10px;
+			        width: 45%;
+			        padding-right: 10px;
+			        text-align: left;
+			        font-weight: 600;
+			        color: var(--neon-accent);
+			    }
+    
+			    td:last-child {
+			        text-align: center;
+			        padding-left: 10px !important;
+			    }
+    
+			    td:last-child button {
+			        width: 100%;
+			        margin-top: 5px;
+			    }
+    
+			    /* Graphiques */
+			    .analysis-grid {
+			        flex-direction: column;
+			        gap: 15px;
+			    }
+    
+			    .chart-container {
+			        width: 100% !important;
+			        padding: 15px;
+			        min-height: 250px;
+			    }
+    
+			    #solde-analysis {
+			        font-size: 2em;
+			        padding: 12px 20px;
+			        margin: 15px auto;
+			    }
+    
+			    /* Budget cards */
+			    .budget-card {
+			        padding: 12px;
+			    }
+    
+			    #budget-section {
+			        gap: 10px;
+			    }
+    
+			    /* Gestion onglets */
+			    .gestion-onglets {
+			        padding: 15px;
+			        gap: 15px;
+			    }
+    
+			    .gestion-onglets > div {
+			        flex-direction: column;
+			        gap: 10px;
+			    }
+    
+			    /* Transfer section */
+			    .transfer-section {
+			        flex-direction: column;
+			        padding: 15px;
+			        gap: 12px;
+			    }
+    
+			    /* Modales */
+			    .auth-container,
+			    #new-month-modal,
+			    #notification-modal,
+			    #category-modal,
+			    .confirm-content,
+			    .rename-content {
+			        width: 90% !important;
+			        max-width: 90% !important;
+			        padding: 20px !important;
+			    }
+    
+			    /* FAB */
+			    .fab-btn {
+			        bottom: 20px;
+			        right: 20px;
+			        width: 56px;
+			        height: 56px;
+			        font-size: 1.4em;
+			    }
+    
+			    .fab-tooltip {
+			        bottom: 80px;
+			        right: 20px;
+			    }
+    
+			    /* Copyright */
+			    #copyright-footer {
+			        margin-top: 30px;
+			        padding: 15px 10px;
+			        font-size: 0.85em;
+			    }
+    
+			    /* Calendrier */
+			    #calendar-container {
+			        gap: 3px;
+			        font-size: 0.75em;
+			    }
+    
+			    .calendar-day {
+			        min-height: 70px;
+			        padding: 5px;
+			    }
+    
+			    .calendar-transaction {
+			        font-size: 0.7em;
+			    }
 			}
+		}
+		#menu-overlay {
+		    position: fixed;
+		    top: 0;
+		    left: 0;
+		    width: 100%;
+		    height: 100vh;
+		    background: rgba(0, 0, 0, 0.6);
+		    z-index: 1999;
 		}
     </style>
 </head>
@@ -1434,6 +1716,14 @@
 		<button id="burger-menu" style="display: none;">
 		    <i class="fas fa-bars"></i>
 		</button>
+		
+		<!-- Bouton burger mobile -->
+		<button id="burger-menu" style="display: none;">
+		    <i class="fas fa-bars"></i>
+		</button>
+
+		<!-- Overlay pour fermer le menu -->
+		<div id="menu-overlay" style="display: none;"></div>
 
 <nav id="main-nav">
     <button class="nav-btn active" data-screen="dashboard-screen"><i class="fas fa-tachometer-alt"></i> Tableau de Bord</button>
@@ -1772,6 +2062,8 @@
 	<button id="install-button" style="display: none;">
 	    <i class="fas fa-download"></i> Installer l'app
 	</button>
+	
+	
 
     <script>
         // --- CONFIGURATION GLOBALE ---
@@ -4117,6 +4409,31 @@
 			            if (window.innerWidth <= 768) {
 			                mainNav.classList.remove('open');
 			                menuOverlay.classList.remove('active');
+			            }
+			        });
+			    });
+			}
+			// Gestion menu burger mobile
+			const burgerBtn = document.getElementById('burger-menu');
+			const overlay = document.getElementById('menu-overlay');
+
+			if (burgerBtn && overlay) {
+			    burgerBtn.onclick = () => {
+			        mainNav.classList.toggle('open');
+			        overlay.style.display = mainNav.classList.contains('open') ? 'block' : 'none';
+			    };
+    
+			    overlay.onclick = () => {
+			        mainNav.classList.remove('open');
+			        overlay.style.display = 'none';
+			    };
+    
+			    // Fermer après clic sur nav
+			    navButtons.forEach(btn => {
+			        btn.addEventListener('click', () => {
+			            if (window.innerWidth <= 768) {
+			                mainNav.classList.remove('open');
+			                overlay.style.display = 'none';
 			            }
 			        });
 			    });
