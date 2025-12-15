@@ -1620,6 +1620,13 @@
 		    height: 100vh;
 		    background: rgba(0, 0, 0, 0.6);
 		    z-index: 1999;
+		    display: none;
+		    pointer-events: none; /* 👈 AJOUTE CETTE LIGNE */
+		}
+
+		#menu-overlay.active {
+		    display: block;
+		    pointer-events: auto; /* 👈 ET CELLE-CI */
 		}
     </style>
 </head>
@@ -4418,14 +4425,14 @@
 			const overlay = document.getElementById('menu-overlay');
 
 			if (burgerBtn && overlay) {
-			    burgerBtn.onclick = () => {
-			        mainNav.classList.toggle('open');
-			        overlay.style.display = mainNav.classList.contains('open') ? 'block' : 'none';
-			    };
+				burgerBtn.onclick = () => {
+				    mainNav.classList.toggle('open');
+				    overlay.classList.toggle('active'); // 👈 par celle-ci
+				};
     
 			    overlay.onclick = () => {
 			        mainNav.classList.remove('open');
-			        overlay.style.display = 'none';
+			        overlay.classList.remove('active');
 			    };
     
 			    // Fermer après clic sur nav
