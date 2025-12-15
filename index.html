@@ -1374,22 +1374,24 @@
 			        font-size: 1.1em !important;
 			    }
     
-			    /* Solde persistant */
-			    #persistent-balance {
-			        position: relative;
-			        float: none !important;
-			        width: 100% !important;
-			        max-width: 100% !important;
-			        margin: 0 0 15px 0;
-			        padding: 12px 15px;
-			        font-size: 1em;
-			        justify-content: space-between;
-			        flex-wrap: wrap;
-			    }
-    
-			    #persistent-balance .balance-amount {
-			        font-size: 1.2em;
-			    }
+				/* Solde persistant */
+				#persistent-balance {
+				    position: relative;
+				    float: none !important;
+				    width: 100% !important;
+				    max-width: 100% !important;
+				    margin: 0 0 15px 0;
+				    padding: 10px 12px;
+				    font-size: 0.85em;
+				    justify-content: space-between;
+				    flex-wrap: wrap;
+				    gap: 5px;
+				}
+
+				#persistent-balance .balance-amount {
+				    font-size: 1em;
+				    word-break: break-word;
+				}
     
 			    /* 🔧 FIX NAVIGATION MOIS - TOUT SUR UNE LIGNE */
 			    .month-navigation {
@@ -1471,6 +1473,11 @@
 			        padding: 12px !important;
 			        min-height: 44px;
 			    }
+				#transaction-form input[type="date"] {
+				    max-width: 100% !important;
+				    box-sizing: border-box !important;
+				    overflow: hidden;
+				}
     
 			    /* Boutons */
 			    .app-btn {
