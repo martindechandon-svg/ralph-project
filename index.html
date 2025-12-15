@@ -1267,6 +1267,27 @@
 		        width: 100%;
 		        justify-content: center;
 		    }
+			/* FIX DÉPASSEMENTS MOBILE */
+			#persistent-balance {
+			    font-size: 0.75em !important;
+			    padding: 8px !important;
+			    gap: 3px !important;
+			    text-align: left !important;
+			}
+
+			#persistent-balance .balance-amount {
+			    font-size: 0.95em !important;
+			    max-width: 100%;
+			    overflow-wrap: break-word;
+			}
+
+			#transaction-form input[type="date"],
+			#transaction-form input,
+			#transaction-form select {
+			    font-size: 14px !important;
+			    padding: 10px 8px !important;
+			    max-width: 100% !important;
+			}
 			/* ===== RESPONSIVE MOBILE UNIQUEMENT ===== */
 			@media (max-width: 768px) {
 			    /* ===== RESPONSIVE MOBILE UNIQUEMENT ===== */
