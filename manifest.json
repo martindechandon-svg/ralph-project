@@ -8,17 +8,15 @@
 	"theme_color": "#00FFFF",
 	"orientation": "portrait-primary",
 	"icons": [
-		{
-			"src": "./images/ralphlogo.jpg",
-			"sizes": "192x192",
-			"type": "image/jpeg",
-			"purpose": "any maskable"
-		},
-		{
-			"src": "./images/ralphlogo.jpg",
-			"sizes": "512x512",
-			"type": "image/jpeg",
-			"purpose": "any maskable"
-		}
+	  {
+	    "src": "/images/ralphlogo.png",
+	    "sizes": "192x192",
+	    "type": "image/png"
+	  },
+	  {
+	    "src": "/images/ralphlogo.png",
+	    "sizes": "512x512",
+	    "type": "image/png"
+	  }
 	]
 }
