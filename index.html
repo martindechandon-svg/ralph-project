@@ -3893,25 +3893,46 @@
 			    });
 			}
 
-			// 📱 DÉTECTION DE L'INSTALLATION PWA
+			// 📱 GESTION DE L'INSTALLATION PWA
 			let deferredPrompt;
+			const installButton = document.getElementById('install-button');
+
 			window.addEventListener('beforeinstallprompt', (e) => {
 			    e.preventDefault();
 			    deferredPrompt = e;
     
-			    // Afficher un message d'installation
-			    showToast('💡 Installez Ralph comme application pour un accès rapide !', 'info', 5000);
-    
-			    // Optionnel : Créer un bouton d'installation personnalisé
-			    // (Tu peux ignorer ça pour l'instant)
+			    // Afficher le bouton d'installation
+			    if (installButton) {
+			        installButton.style.display = 'flex';
+			        installButton.style.alignItems = 'center';
+			        installButton.style.gap = '8px';
+			    }
 			});
+
+			// Gestion du clic sur le bouton d'installation
+			if (installButton) {
+			    installButton.addEventListener('click', async () => {
+			        if (!deferredPrompt) return;
+        
+			        deferredPrompt.prompt();
+			        const { outcome } = await deferredPrompt.userChoice;
+        
+			        if (outcome === 'accepted') {
+			            showToast('✅ Ralph est en cours d\'installation !', 'success');
+			        }
+        
+			        deferredPrompt = null;
+			        installButton.style.display = 'none';
+			    });
+			}
 
 			// Détecter quand l'app est installée
 			window.addEventListener('appinstalled', () => {
-			    showToast('✅ Ralph est maintenant installé sur votre appareil !', 'success', 5000);
-			    deferredPrompt = null;
+			    showToast('✅ Ralph est maintenant installé sur votre appareil !', 'success');
+			    if (installButton) {
+			        installButton.style.display = 'none';
+			    }
 			});
-		};
     </script>
 		<script>
 		    window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
