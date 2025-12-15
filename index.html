@@ -1093,25 +1093,32 @@
 		}
 
         /* Bouton flottant de sauvegarde */
-        .fab-btn {
-            position: fixed;
-            bottom: 30px;
-            right: 30px;
-            width: 60px;
-            height: 60px;
-            border-radius: 50%;
-            background: var(--neon-success);
-            color: var(--card-color);
-            border: none;
-            box-shadow: 0 0 15px rgba(0, 255, 153, 0.5);
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.5em;
-            z-index: 1000;
-            transition: all 0.2s;
-        }
+		.fab-btn {
+		    position: fixed;
+		    bottom: 30px;
+		    right: 30px;
+		    width: 60px;
+		    height: 60px;
+		    border-radius: 50%;
+		    background: var(--neon-success);
+		    color: var(--card-color);
+		    border: none;
+		    box-shadow: 0 0 15px rgba(0, 255, 153, 0.5);
+		    cursor: pointer;
+		    display: flex;
+		    align-items: center;
+		    justify-content: center;
+		    font-size: 1.5em;
+		    z-index: 1000;
+		    transition: all 0.2s;
+		}
+
+		/* Sur mobile, le bouton save monte plus haut */
+		@media (max-width: 768px) {
+		    .fab-btn {
+		        bottom: 160px; /* Pour laisser place au bouton + */
+		    }
+		}
         .fab-btn:hover {
             transform: scale(1.1);
             box-shadow: 0 0 20px rgba(0, 255, 153, 0.7);
@@ -1862,11 +1869,344 @@
 		#menu-overlay.active {
 		    display: block;
 		}
+		
+		/* 📱 MASQUER LE SYSTÈME MOBILE SUR DESKTOP PAR DÉFAUT */
+		#mobile-add-btn {
+		    display: none !important;
+		}
+
+		#mobile-transaction-modal {
+		    display: none !important;
+		}
+		
+		/* ðŸ"± MODAL D'AJOUT DE TRANSACTION MOBILE - CORRECTIONS */
+		@media (max-width: 768px) {
+		    /* Modal plein écran avec fond sombre */
+		    #mobile-transaction-modal {
+		        display: none;
+		        position: fixed;
+		        top: 0;
+		        left: 0;
+		        width: 100%;
+		        height: 100vh;
+		        background: var(--bg-color);
+		        z-index: 2500;
+		        overflow-y: auto;
+		        animation: slideUp 0.3s ease;
+		    }
+    
+		    #mobile-transaction-modal.active {
+		        display: flex !important;
+		        flex-direction: column;
+		    }
+
+		    @keyframes slideUp {
+		        from {
+		            transform: translateY(100%);
+		        }
+		        to {
+		            transform: translateY(0);
+		        }
+		    }
+    
+		    /* En-tête du modal - FIXE EN HAUT */
+		    .mobile-modal-header {
+		        display: flex;
+		        justify-content: space-between;
+		        align-items: center;
+		        padding: 15px 20px;
+		        background: var(--card-color);
+		        border-bottom: 2px solid var(--border-color);
+		        position: sticky;
+		        top: 0;
+		        z-index: 10;
+		        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+		    }
+    
+		    .mobile-modal-header h3 {
+		        margin: 0;
+		        font-size: 1.3em;
+		        color: var(--neon-accent);
+		        border: none;
+		        padding: 0;
+		        display: flex;
+		        align-items: center;
+		        gap: 10px;
+		    }
+    
+		    .mobile-modal-close {
+		        background: transparent;
+		        border: 2px solid var(--border-color);
+		        font-size: 1.5em;
+		        color: var(--text-color);
+		        cursor: pointer;
+		        width: 40px;
+		        height: 40px;
+		        display: flex;
+		        align-items: center;
+		        justify-content: center;
+		        border-radius: 50%;
+		        transition: all 0.2s;
+		    }
+    
+		    .mobile-modal-close:active {
+		        background: var(--neon-danger);
+		        color: white;
+		        transform: scale(0.95);
+		    }
+    
+		    /* Contenu du modal - SCROLLABLE */
+		    .mobile-modal-content {
+		        flex: 1;
+		        padding: 20px;
+		        display: flex;
+		        flex-direction: column;
+		        gap: 20px;
+		        background: var(--bg-color);
+		        overflow-y: auto;
+		        padding-bottom: 100px; /* Espace pour le bouton de soumission */
+		    }
+    
+		    /* Champ montant XXL - BIEN VISIBLE */
+		    .mobile-amount-container {
+		        text-align: center;
+		        padding: 30px 20px;
+		        background: var(--card-color);
+		        border-radius: 15px;
+		        border: 2px solid var(--border-color);
+		        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+		    }
+    
+		    .mobile-amount-label {
+		        font-size: 1em;
+		        color: var(--text-color);
+		        font-weight: 600;
+		        margin-bottom: 10px;
+		    }
+    
+		    .mobile-amount-input {
+		        font-size: 3em !important;
+		        font-weight: 700;
+		        text-align: center;
+		        border: none !important;
+		        background: transparent !important;
+		        color: var(--neon-accent) !important;
+		        width: 100%;
+		        padding: 10px !important;
+		        outline: none;
+		    }
+    
+		    .mobile-amount-input::placeholder {
+		        color: var(--border-color);
+		        opacity: 0.5;
+		    }
+    
+		    /* Toggle Type (Revenu/Dépense) - AMÉLIORATION */
+		    .mobile-type-toggle {
+		        display: flex;
+		        gap: 10px;
+		        background: var(--card-color);
+		        padding: 8px;
+		        border-radius: 12px;
+		        border: 2px solid var(--border-color);
+		    }
+    
+		    .mobile-type-btn {
+		        flex: 1;
+		        padding: 15px;
+		        border: none;
+		        border-radius: 10px;
+		        font-size: 1.1em;
+		        font-weight: 600;
+		        cursor: pointer;
+		        transition: all 0.2s;
+		        background: transparent;
+		        color: var(--light-text-color);
+		    }
+    
+		    .mobile-type-btn.active {
+		        transform: scale(1.02);
+		        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+		    }
+    
+		    .mobile-type-btn.revenu.active {
+		        background: var(--neon-success);
+		        color: white;
+		    }
+    
+		    .mobile-type-btn.depense.active {
+		        background: var(--neon-danger);
+		        color: white;
+		    }
+    
+		    /* Champs du formulaire - AMÉLIORATION */
+		    .mobile-form-group {
+		        display: flex;
+		        flex-direction: column;
+		        gap: 8px;
+		    }
+    
+		    .mobile-form-label {
+		        font-size: 0.95em;
+		        color: var(--text-color);
+		        font-weight: 600;
+		        display: flex;
+		        align-items: center;
+		        gap: 8px;
+		    }
+    
+		    .mobile-form-input,
+		    .mobile-form-select {
+		        padding: 15px !important;
+		        font-size: 1.05em !important;
+		        border-radius: 12px !important;
+		        border: 2px solid var(--border-color) !important;
+		        background: var(--card-color) !important;
+		        color: var(--text-color) !important;
+		        min-height: 50px;
+		        font-family: 'Poppins', sans-serif;
+		    }
+    
+		    .mobile-form-input:focus,
+		    .mobile-form-select:focus {
+		        outline: none;
+		        border-color: var(--neon-accent) !important;
+		        box-shadow: 0 0 0 3px rgba(0, 255, 255, 0.1);
+		    }
+    
+		    /* Bouton de validation - FIXE EN BAS */
+		    .mobile-submit-btn {
+		        position: fixed;
+		        bottom: 0;
+		        left: 0;
+		        right: 0;
+		        width: 100%;
+		        padding: 18px;
+		        font-size: 1.2em;
+		        font-weight: 700;
+		        border: none;
+		        border-radius: 0;
+		        background: var(--neon-success);
+		        color: white;
+		        cursor: pointer;
+		        box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.2);
+		        transition: all 0.2s;
+		        z-index: 100;
+		    }
+    
+		    .mobile-submit-btn:active {
+		        transform: scale(0.98);
+		        background: var(--neon-accent);
+		    }
+    
+		    /* Fix pour le symbole € */
+		    .mobile-amount-container > div:last-child {
+		        font-size: 2em;
+		        color: var(--text-color);
+		        margin-top: 5px;
+		        font-weight: 600;
+		    }
+		}
     </style>
 </head>
 <body>
 	
 	<div id="menu-overlay"></div>
+	
+	<!-- 📱 BOUTON FLOTTANT MOBILE -->
+	<button id="mobile-add-btn" style="display: none;">
+	    <i class="fas fa-plus"></i>
+	</button>
+
+	<!-- 📱 MODAL D'AJOUT DE TRANSACTION MOBILE -->
+	<div id="mobile-transaction-modal">
+	    <div class="mobile-modal-header">
+	        <h3><i class="fas fa-plus-circle"></i> Nouvelle transaction</h3>
+	        <button class="mobile-modal-close" onclick="closeMobileModal()">
+	            <i class="fas fa-times"></i>
+	        </button>
+	    </div>
+    
+	    <form class="mobile-modal-content" id="mobile-transaction-form">
+	        <!-- Montant XXL -->
+	        <div class="mobile-amount-container">
+	            <div class="mobile-amount-label">💰 Montant</div>
+	            <input 
+	                type="number" 
+	                id="mobile-montant" 
+	                class="mobile-amount-input" 
+	                placeholder="0.00" 
+	                step="0.01" 
+	                min="0"
+	                required
+	                inputmode="decimal"
+	            >
+	            <div style="font-size: 2em; color: var(--light-text-color); margin-top: -10px;">€</div>
+	        </div>
+        
+	        <!-- Toggle Type -->
+	        <div class="mobile-type-toggle">
+	            <button type="button" class="mobile-type-btn revenu" data-type="revenu">
+	                <i class="fas fa-arrow-up"></i> Revenu
+	            </button>
+	            <button type="button" class="mobile-type-btn depense active" data-type="depense">
+	                <i class="fas fa-arrow-down"></i> Dépense
+	            </button>
+	        </div>
+        
+	        <!-- Description -->
+	        <div class="mobile-form-group">
+	            <label class="mobile-form-label">
+	                <i class="fas fa-align-left"></i> Description
+	            </label>
+	            <input 
+	                type="text" 
+	                id="mobile-description" 
+	                class="mobile-form-input" 
+	                placeholder="Ex: Courses, Restaurant..."
+	                required
+	            >
+	        </div>
+        
+	        <!-- Catégorie -->
+	        <div class="mobile-form-group">
+	            <label class="mobile-form-label">
+	                <i class="fas fa-tag"></i> Catégorie
+	            </label>
+	            <select id="mobile-categorie" class="mobile-form-select" required>
+	                <option value="">-- Choisir --</option>
+	            </select>
+	        </div>
+        
+	        <!-- Compte -->
+	        <div class="mobile-form-group">
+	            <label class="mobile-form-label">
+	                <i class="fas fa-credit-card"></i> Compte
+	            </label>
+	            <select id="mobile-compte" class="mobile-form-select" required>
+	                <option value="">-- Choisir --</option>
+	            </select>
+	        </div>
+        
+	        <!-- Date -->
+	        <div class="mobile-form-group">
+	            <label class="mobile-form-label">
+	                <i class="fas fa-calendar"></i> Date
+	            </label>
+	            <input 
+	                type="date" 
+	                id="mobile-date" 
+	                class="mobile-form-input"
+	                required
+	            >
+	        </div>
+        
+	        <!-- Bouton de validation -->
+	        <button type="submit" class="mobile-submit-btn">
+	            <i class="fas fa-check-circle"></i> Ajouter la transaction
+	        </button>
+	    </form>
+	</div>
 
     <div id="category-modal" role="dialog" aria-hidden="true">
         <h4><i class="fas fa-plus-circle"></i> Ajouter une catégorie</h4>
@@ -4571,6 +4911,117 @@
 		        });
 		    } else {
 		        console.error('❌ Menu burger elements not found:', { burgerBtn, mainNav, overlay });
+		    }
+		});
+		
+		// 📱 GESTION DU MODAL MOBILE D'AJOUT DE TRANSACTION
+		let currentMobileType = 'depense';
+
+		function openMobileModal() {
+		    const modal = document.getElementById('mobile-transaction-modal');
+		    if (!modal) return;
+    
+		    // Réinitialiser le formulaire
+		    document.getElementById('mobile-transaction-form').reset();
+		    document.getElementById('mobile-date').value = new Date().toISOString().substring(0, 10);
+    
+		    // Charger les sélecteurs
+		    loadMobileSelectors();
+    
+		    // Afficher le modal
+		    modal.classList.add('active');
+    
+		    // Focus sur le montant
+		    setTimeout(() => {
+		        document.getElementById('mobile-montant').focus();
+		    }, 300);
+		}
+
+		function closeMobileModal() {
+		    const modal = document.getElementById('mobile-transaction-modal');
+		    if (!modal) return;
+		    modal.classList.remove('active');
+		}
+
+		function loadMobileSelectors() {
+		    const typeButtons = document.querySelectorAll('.mobile-type-btn');
+		    const categorieSelect = document.getElementById('mobile-categorie');
+		    const compteSelect = document.getElementById('mobile-compte');
+    
+		    // Gestion du toggle type
+		    typeButtons.forEach(btn => {
+		        btn.classList.remove('active');
+		        if (btn.dataset.type === currentMobileType) {
+		            btn.classList.add('active');
+		        }
+        
+		        btn.onclick = function() {
+		            currentMobileType = this.dataset.type;
+		            typeButtons.forEach(b => b.classList.remove('active'));
+		            this.classList.add('active');
+		            updateMobileCategorieSelect();
+		        };
+		    });
+    
+		    // Charger les catégories
+		    updateMobileCategorieSelect();
+    
+		    // Charger les comptes
+		    compteSelect.innerHTML = '<option value="">-- Choisir --</option>';
+		    COMPTES.forEach(compte => {
+		        const option = document.createElement('option');
+		        option.value = compte;
+		        option.textContent = compte;
+		        compteSelect.appendChild(option);
+		    });
+		}
+
+		function updateMobileCategorieSelect() {
+		    const categorieSelect = document.getElementById('mobile-categorie');
+		    const cats = currentMobileType === 'revenu' ? CATEGORIES.revenu : CATEGORIES.depense;
+    
+		    categorieSelect.innerHTML = '<option value="">-- Choisir --</option>';
+		    cats.forEach(cat => {
+		        const option = document.createElement('option');
+		        option.value = cat;
+		        option.textContent = cat;
+		        categorieSelect.appendChild(option);
+		    });
+		}
+
+		// Soumission du formulaire mobile
+		document.addEventListener('DOMContentLoaded', function() {
+		    const mobileForm = document.getElementById('mobile-transaction-form');
+		    const mobileAddBtn = document.getElementById('mobile-add-btn');
+    
+		    if (mobileForm) {
+		        mobileForm.addEventListener('submit', function(e) {
+		            e.preventDefault();
+            
+		            const date = document.getElementById('mobile-date').value;
+		            const description = document.getElementById('mobile-description').value;
+		            const montant = parseFloat(document.getElementById('mobile-montant').value);
+		            const type = currentMobileType;
+		            const categorie = document.getElementById('mobile-categorie').value;
+		            const compte = document.getElementById('mobile-compte').value;
+            
+		            if (isNaN(montant) || montant <= 0 || !categorie || !compte) {
+		                showModal("Veuillez remplir tous les champs.", 'error');
+		                return;
+		            }
+            
+		            ajouterNouvelleTransaction(date, description, montant, type, categorie, compte);
+		            closeMobileModal();
+		        });
+		    }
+    
+		    if (mobileAddBtn) {
+		        mobileAddBtn.addEventListener('click', openMobileModal);
+		    }
+    
+		    // Afficher le bouton sur mobile uniquement
+		    if (window.innerWidth <= 768 && mobileAddBtn) {
+		        mobileAddBtn.style.display = 'flex';
 		    }
 		});
 
