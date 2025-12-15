@@ -1539,55 +1539,128 @@
 			        margin-top: 5px;
 			    }
     
-			    /* 🔧 FIX TABLEAUX - PLUS COMPACTS */
-			    table {
-			        display: block;
-			        width: 100%;
-			        overflow-x: auto;
-			        -webkit-overflow-scrolling: touch;
-			        font-size: 0.8em !important;
-			    }
-    
-			    thead, tbody, tr {
-			        display: block;
-			    }
-    
-			    thead tr {
-			        position: absolute;
-			        top: -9999px;
-			        left: -9999px;
-			    }
-    
-			    tr {
-			        margin-bottom: 10px !important;
-			        border: 1px solid var(--border-color);
-			        border-radius: 6px !important;
-			        padding: 8px !important;
-			        background: var(--input-bg);
-			    }
-    
-			    td {
-			        display: block;
-			        text-align: right;
-			        padding: 6px 8px !important;
-			        position: relative;
-			        padding-left: 45% !important;
-			        border: none !important;
-			        min-width: auto !important;
-			        font-size: 0.9em !important;
-			    }
-    
-			    td:before {
-			        content: attr(data-label);
-			        position: absolute;
-			        left: 8px;
-			        width: 40%;
-			        padding-right: 8px;
-			        text-align: left;
-			        font-weight: 600;
-			        color: var(--neon-accent);
-			        font-size: 0.85em;
-			    }
+				/* 🔧 TABLEAUX MOBILE - VERSION COMPACTE */
+				table {
+				    display: block;
+				    width: 100%;
+				    font-size: 0.85em !important;
+				}
+
+				thead, tbody {
+				    display: block;
+				}
+
+				thead tr {
+				    display: none; /* Masquer les en-têtes */
+				}
+
+				tr {
+				    display: grid;
+				    grid-template-columns: 1fr auto;
+				    grid-template-rows: auto auto auto;
+				    gap: 4px 8px;
+				    margin-bottom: 8px !important;
+				    border: 1px solid var(--border-color);
+				    border-left: 4px solid var(--neon-accent);
+				    border-radius: 8px !important;
+				    padding: 10px 12px !important;
+				    background: var(--input-bg);
+				    position: relative;
+				}
+
+				/* Coloration selon le type */
+				tr.revenue-row {
+				    border-left-color: var(--neon-success);
+				}
+
+				tr.expense-row {
+				    border-left-color: var(--neon-danger);
+				}
+
+				td {
+				    display: block;
+				    border: none !important;
+				    padding: 0 !important;
+				    text-align: left;
+				    min-width: auto !important;
+				}
+
+				/* Date + Montant sur la 1ère ligne */
+				td:nth-child(1) { /* Date */
+				    grid-column: 1;
+				    grid-row: 1;
+				    font-size: 0.75em;
+				    color: var(--light-text-color);
+				    font-weight: 500;
+				}
+
+				td:nth-child(6) { /* Montant */
+				    grid-column: 2;
+				    grid-row: 1;
+				    font-size: 1.1em;
+				    font-weight: 700;
+				    text-align: right;
+				}
+
+				/* Description sur la 2ème ligne (pleine largeur) */
+				td:nth-child(2) { /* Description */
+				    grid-column: 1 / -1;
+				    grid-row: 2;
+				    font-size: 0.95em;
+				    font-weight: 600;
+				    color: var(--text-color);
+				}
+
+				/* Catégorie + Compte sur la 3ème ligne */
+				td:nth-child(4) { /* Catégorie */
+				    grid-column: 1;
+				    grid-row: 3;
+				    font-size: 0.8em;
+				    color: var(--light-text-color);
+				}
+
+				td:nth-child(4):before {
+				    content: "📁 ";
+				}
+
+				td:nth-child(5) { /* Compte */
+				    grid-column: 2;
+				    grid-row: 3;
+				    font-size: 0.8em;
+				    color: var(--light-text-color);
+				    text-align: right;
+				}
+
+				td:nth-child(5):before {
+				    content: "💳 ";
+				}
+
+				/* Masquer la colonne Type (redondant avec la couleur) */
+				td:nth-child(3) {
+				    display: none;
+				}
+
+				/* Bouton supprimer en position absolue */
+				td:nth-child(7) { /* Action */
+				    position: absolute;
+				    top: 8px;
+				    right: 8px;
+				    grid-column: unset;
+				    grid-row: unset;
+				}
+
+				td:nth-child(7) button {
+				    width: 32px !important;
+				    height: 32px !important;
+				    padding: 0 !important;
+				    font-size: 0.8em !important;
+				    border-radius: 6px !important;
+				}
+
+				/* Supprimer tous les :before génériques */
+				td:before {
+				    display: none;
+				}
     
 			    td:last-child {
 			        text-align: center;
