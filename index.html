@@ -1674,49 +1674,90 @@
 			        font-size: 0.85em !important;
 			    }
     
-				/* Graphiques */
+				/* Graphiques - FIX CHEVAUCHEMENT */
 				.analysis-grid {
 				    flex-direction: column !important;
-				    gap: 20px !important;
-				    display: flex !important;
+				    gap: 0 !important;
+				    display: block !important;
+				    margin-bottom: 0 !important;
 				}
 
 				.chart-container {
 				    width: 100% !important;
-				    padding: 15px;
+				    padding: 15px !important;
 				    min-height: 250px;
-				    margin-bottom: 20px !important;
+				    margin-bottom: 25px !important;
 				    display: block !important;
 				    clear: both !important;
+				    position: relative !important;
+				    float: none !important;
 				}
 
 				.chart-container canvas {
 				    max-width: 100% !important;
 				    height: auto !important;
+				    display: block !important;
+				    position: relative !important;
 				}
-				
+
+				.chart-container h3 {
+				    margin-bottom: 15px !important;
+				}
+
 				/* Espacement entre les sections d'analyse */
 				#analysis-screen h2 {
-				    margin-top: 30px !important;
+				    margin-top: 35px !important;
+				    margin-bottom: 20px !important;
 				    clear: both !important;
+				    display: block !important;
 				}
 
 				#analysis-screen .separator {
-				    margin: 30px 0 !important;
+				    margin: 35px 0 !important;
 				    clear: both !important;
+				    display: block !important;
 				}
 
 				#solde-analysis {
-				    margin-bottom: 30px !important;
+				    margin-bottom: 35px !important;
+				    margin-top: 20px !important;
 				    display: block !important;
 				    clear: both !important;
+				    width: 100% !important;
 				}
+
+				/* Budget section spacing */
+				#budget-section {
+				    margin-top: 15px !important;
+				    margin-bottom: 25px !important;
+				    clear: both !important;
+				}
+
+				#budget-form {
+				    margin-bottom: 20px !important;
+				    clear: both !important;
+				}
+
+				/* Force les canvas à ne pas déborder */
+				#expense-pie-chart,
+				#balance-history-chart,
+				#revenue-expense-chart {
+				    max-width: 100% !important;
+				    height: auto !important;
+				    display: block !important;
+				}
+				
+				/* Forcer l'espacement vertical sur tous les conteneurs */
+				@media (max-width: 768px) {
+				    #analysis-screen > * {
+				        margin-bottom: 20px !important;
+				        clear: both !important;
+				    }
     
-			    #solde-analysis {
-			        font-size: 2em;
-			        padding: 12px 20px;
-			        margin: 15px auto;
-			    }
+				    #analysis-screen .chart-container:last-child {
+				        margin-bottom: 40px !important;
+				    }
+				}
     
 			    /* Budget cards */
 			    .budget-card {
