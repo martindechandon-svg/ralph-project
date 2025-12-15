@@ -1228,10 +1228,40 @@
 		        padding: 10px 8px;
 		    }
     
-		    /* Container moins de padding */
-		    .container {
-		        padding: 20px 15px;
-		    }
+			/* Container moins de padding */
+			.container {
+			    padding: 15px 10px !important;
+			    max-width: 100vw;
+			    overflow-x: hidden;
+			}
+			/* Forcer tous les éléments à ne pas dépasser */
+			@media (max-width: 768px) {
+			    body {
+			        overflow-x: hidden;
+			        max-width: 100vw;
+			    }
+    
+			    * {
+			        max-width: 100%;
+			        box-sizing: border-box !important;
+			    }
+    
+			    #persistent-balance {
+			        padding: 8px 10px !important;
+			        font-size: 0.85em !important;
+			    }
+    
+			    .month-navigation {
+			        padding: 8px !important;
+			        gap: 5px !important;
+			    }
+    
+			    #transaction-form,
+			    #recurrence-form,
+			    .filter-container {
+			        padding: 10px !important;
+			    }
+			}
     
 		    /* Timeline scrollable horizontalement */
 		    .month-timeline {
