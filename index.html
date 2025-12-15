@@ -1640,21 +1640,34 @@
 				    display: none;
 				}
 
-				/* Bouton supprimer en position absolue */
-				td:nth-child(7) { /* Action */
-				    position: absolute;
-				    top: 8px;
-				    right: 8px;
-				    grid-column: unset;
-				    grid-row: unset;
+				/* Masquer le bouton supprimer sur mobile */
+				td:nth-child(7) {
+				    display: none !important;
+				}
+				
+				/* Rendre les transactions cliquables sur mobile */
+				@media (max-width: 768px) {
+				    tr {
+				        cursor: pointer;
+				        transition: all 0.2s ease;
+				    }
+    
+				    tr:active {
+				        transform: scale(0.98);
+				        opacity: 0.8;
+				    }
+    
+				    tr.deleting {
+				        animation: slideOutRight 0.3s ease forwards;
+				        background-color: var(--neon-danger) !important;
+				    }
 				}
 
-				td:nth-child(7) button {
-				    width: 32px !important;
-				    height: 32px !important;
-				    padding: 0 !important;
-				    font-size: 0.8em !important;
-				    border-radius: 6px !important;
+				@keyframes slideOutRight {
+				    to {
+				        transform: translateX(100%);
+				        opacity: 0;
+				    }
 				}
 
 				/* Supprimer tous les :before génériques */
@@ -2883,25 +2896,35 @@
 		    if (oldCountInfo) {
 		        oldCountInfo.remove();
 		    }
-            currentMonthData.transactions.forEach((t, index) => {
-                const row = transactionList.insertRow();
-                row.classList.add(t.type === 'revenu' ? 'revenue-row' : 'expense-row');
-                row.insertCell(0).textContent = t.date;
-                row.insertCell(1).textContent = t.description;
-                row.insertCell(2).textContent = t.type === 'revenu' ? 'Revenu' : 'Dépense';
-                row.insertCell(3).textContent = t.categorie;
-                row.insertCell(4).textContent = t.compte;
-                const montantFormatte = t.type === 'revenu' ?
-                                        '+' + t.montant.toFixed(2) :
-                                        '-' + t.montant.toFixed(2);
-                row.insertCell(5).textContent = montantFormatte;
-                const deleteCell = row.insertCell(6);
-                const deleteButton = document.createElement('button');
-                deleteButton.innerHTML = '<i class="fas fa-trash-alt"></i>';
-                deleteButton.classList.add('app-btn', 'delete-btn');
-                deleteButton.onclick = function() { supprimerTransaction(index); };
-                deleteCell.appendChild(deleteButton);
-            });
+			currentMonthData.transactions.forEach((t, index) => {
+			    const row = transactionList.insertRow();
+			    row.classList.add(t.type === 'revenu' ? 'revenue-row' : 'expense-row');
+			    row.insertCell(0).textContent = t.date;
+			    row.insertCell(1).textContent = t.description;
+			    row.insertCell(2).textContent = t.type === 'revenu' ? 'Revenu' : 'Dépense';
+			    row.insertCell(3).textContent = t.categorie;
+			    row.insertCell(4).textContent = t.compte;
+			    const montantFormatte = t.type === 'revenu' ?
+			                            '+' + t.montant.toFixed(2) :
+			                            '-' + t.montant.toFixed(2);
+			    row.insertCell(5).textContent = montantFormatte;
+			    const deleteCell = row.insertCell(6);
+			    const deleteButton = document.createElement('button');
+			    deleteButton.innerHTML = '<i class="fas fa-trash-alt"></i>';
+			    deleteButton.classList.add('app-btn', 'delete-btn');
+			    deleteButton.onclick = function(e) { 
+			        e.stopPropagation(); 
+			        supprimerTransaction(index); 
+			    };
+			    deleteCell.appendChild(deleteButton);
+    
+			    // 📱 AJOUT : Clic sur la ligne entière pour supprimer (mobile uniquement)
+			    if (window.innerWidth <= 768) {
+			        row.onclick = function() {
+			            supprimerTransactionMobile(index, row, t);
+			        };
+			    }
+			});
             mettreAJourSoldeEtTotaux();
             mettreAJourSuiviBudget();
 		    if (document.getElementById('calendar-screen').classList.contains('active')) {
@@ -3036,6 +3059,31 @@
             sauvegarderTransactions(false);
             showToast("Transaction supprimée.", 'info');
         }
+		function supprimerTransactionMobile(index, row, transaction) {
+		    const montantFormate = transaction.type === 'revenu' 
+		        ? '+' + transaction.montant.toFixed(2) + ' €'
+		        : '-' + transaction.montant.toFixed(2) + ' €';
+    
+		    const confirmed = confirm(
+		        `🗑️ Supprimer cette transaction ?\n\n` +
+		        `📝 ${transaction.description}\n` +
+		        `💰 ${montantFormate}\n` +
+		        `📁 ${transaction.categorie}\n` +
+		        `📅 ${transaction.date}`
+		    );
+    
+		    if (!confirmed) return;
+    
+		    // Animation de suppression
+		    row.classList.add('deleting');
+    
+		    setTimeout(() => {
+		        currentMonthData.transactions.splice(index, 1);
+		        rechargerTableau();
+		        sauvegarderTransactions(false);
+		        showToast("Transaction supprimée.", 'info');
+		    }, 300);
+		}
 
         function chargerSelecteurs() {
             const populateSelect = (selectElement, values, includeAddOption = true) => {
