@@ -1269,6 +1269,8 @@
 		    }
 			/* ===== RESPONSIVE MOBILE UNIQUEMENT ===== */
 			@media (max-width: 768px) {
+			    /* ===== RESPONSIVE MOBILE UNIQUEMENT ===== */
+    
 			    /* Reset du body et container */
 			    body {
 			        padding: 0 !important;
@@ -1282,7 +1284,7 @@
 			        min-height: 100vh;
 			    }
     
-			    /* Burger menu */
+			    /* 🔧 FIX BURGER MENU */
 			    #burger-menu {
 			        display: flex !important;
 			        align-items: center;
@@ -1299,6 +1301,7 @@
 			        color: var(--card-color);
 			        font-size: 1.4em;
 			        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+			        cursor: pointer;
 			    }
     
 			    /* Navigation mobile en overlay */
@@ -1333,7 +1336,7 @@
 			        text-align: left;
 			    }
     
-			    /* Theme switcher */
+			    /* Theme switcher dans le menu */
 			    #theme-switcher {
 			        position: relative;
 			        top: auto;
@@ -1388,30 +1391,48 @@
 			        font-size: 1.2em;
 			    }
     
-			    /* Navigation mois */
+			    /* 🔧 FIX NAVIGATION MOIS - TOUT SUR UNE LIGNE */
 			    .month-navigation {
-			        flex-direction: column;
-			        gap: 10px;
-			        padding: 12px;
+			        flex-direction: row !important;
+			        flex-wrap: nowrap !important;
+			        gap: 8px !important;
+			        padding: 10px !important;
 			        margin-bottom: 15px;
+			        align-items: center;
+			        justify-content: space-between;
 			    }
     
 			    .nav-arrow {
-			        width: 45px;
-			        height: 45px;
-			        font-size: 1.2em;
+			        width: 40px !important;
+			        height: 40px !important;
+			        font-size: 1em;
+			        flex-shrink: 0;
 			    }
     
 			    .current-month-display {
-			        font-size: 1.2em;
+			        font-size: 1em !important;
 			        min-width: auto;
 			        text-align: center;
+			        flex-grow: 1;
+			        white-space: nowrap;
+			        overflow: hidden;
+			        text-overflow: ellipsis;
 			    }
     
 			    .new-month-btn {
-			        width: 100%;
-			        padding: 12px 16px;
+			        width: auto !important;
+			        padding: 10px 12px !important;
 			        justify-content: center;
+			        font-size: 0.85em;
+			        flex-shrink: 0;
+			    }
+    
+			    .new-month-btn span {
+			        display: none;
+			    }
+    
+			    .new-month-btn i {
+			        margin-right: 0 !important;
 			    }
     
 			    /* Timeline des mois */
@@ -1446,7 +1467,7 @@
 			    .filter-container select,
 			    #budget-form input {
 			        width: 100% !important;
-			        font-size: 16px !important; /* Empêche le zoom sur iOS */
+			        font-size: 16px !important;
 			        padding: 12px !important;
 			        min-height: 44px;
 			    }
@@ -1460,13 +1481,13 @@
 			        margin-top: 5px;
 			    }
     
-			    /* Tableaux scrollables */
+			    /* 🔧 FIX TABLEAUX - PLUS COMPACTS */
 			    table {
 			        display: block;
 			        width: 100%;
 			        overflow-x: auto;
 			        -webkit-overflow-scrolling: touch;
-			        font-size: 0.85em;
+			        font-size: 0.8em !important;
 			    }
     
 			    thead, tbody, tr {
@@ -1480,42 +1501,46 @@
 			    }
     
 			    tr {
-			        margin-bottom: 15px;
+			        margin-bottom: 10px !important;
 			        border: 1px solid var(--border-color);
-			        border-radius: 8px;
-			        padding: 10px;
+			        border-radius: 6px !important;
+			        padding: 8px !important;
 			        background: var(--input-bg);
 			    }
     
 			    td {
 			        display: block;
 			        text-align: right;
-			        padding: 8px 10px !important;
+			        padding: 6px 8px !important;
 			        position: relative;
-			        padding-left: 50% !important;
+			        padding-left: 45% !important;
 			        border: none !important;
 			        min-width: auto !important;
+			        font-size: 0.9em !important;
 			    }
     
 			    td:before {
 			        content: attr(data-label);
 			        position: absolute;
-			        left: 10px;
-			        width: 45%;
-			        padding-right: 10px;
+			        left: 8px;
+			        width: 40%;
+			        padding-right: 8px;
 			        text-align: left;
 			        font-weight: 600;
 			        color: var(--neon-accent);
+			        font-size: 0.85em;
 			    }
     
 			    td:last-child {
 			        text-align: center;
-			        padding-left: 10px !important;
+			        padding-left: 8px !important;
 			    }
     
 			    td:last-child button {
 			        width: 100%;
 			        margin-top: 5px;
+			        padding: 8px !important;
+			        font-size: 0.85em !important;
 			    }
     
 			    /* Graphiques */
