@@ -6,7 +6,15 @@
 	
     <title>⚡ Ralph - Aide gratuite à la gestion des comptes</title>
 
-    <link rel="icon" type="image/jpg" href="./images/ralphlogo.jpg">
+<link rel="icon" type="image/jpg" href="./images/ralphlogo.jpg">
+
+<!-- PWA Configuration -->
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#00FFFF">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Ralph">
+<link rel="apple-touch-icon" href="./images/ralphlogo.jpg">
 
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
@@ -2531,17 +2539,27 @@
 		            acc[t.categorie] = (acc[t.categorie] || 0) + t.montant;
 		            return acc;
 		        }, {});
+    
 		    const labels = Object.keys(depensesParCategorie);
 		    const data = Object.values(depensesParCategorie);
+    
+		    // 👉 CALCUL DU TOTAL DES DÉPENSES
+		    const totalDepenses = data.reduce((sum, val) => sum + val, 0);
+    
+		    // 👉 CONVERSION EN POURCENTAGES
+		    const dataEnPourcentages = data.map(montant => 
+		        totalDepenses > 0 ? (montant / totalDepenses) * 100 : 0
+		    );
+    
 		    const backgroundColors = [
 		        '#FF3366', '#00FFFF', '#FFDD44', '#00FF99', '#9933FF', '#FF66AA', '#33FFFF', '#6666FF'
 		    ];
 		    const textColor = body.classList.contains('light-mode') ? '#212529' : '#E0E0FF';
-    
+
 		    if (chartInstance) {
 		        chartInstance.destroy();
 		    }
-    
+
 		    if (data.every(d => d === 0) || data.length === 0) {
 		         const pieChartContainer = document.getElementById('pie-chart-container');
 		         pieChartContainer.innerHTML = '<p style="color: var(--light-text-color); text-align:center; padding-top: 150px;">Aucune donnée de dépense pour ce mois.</p>';
@@ -2549,18 +2567,17 @@
 		    } else {
 		         document.getElementById('pie-chart-container').innerHTML = '<canvas id="expense-pie-chart"></canvas>';
 		    }
-    
-		    // Récupérer le nouveau canvas après l'avoir recréé
+
 		    const newCanvas = document.getElementById('expense-pie-chart');
 		    if (!newCanvas) return;
 		    const ctx = newCanvas.getContext('2d');
-    
+
 		    chartInstance = new Chart(ctx, {
 		        type: 'doughnut',
 		        data: {
 		            labels: labels,
 		            datasets: [{
-		                data: data,
+		                data: dataEnPourcentages, // 👈 UTILISATION DES POURCENTAGES
 		                backgroundColor: backgroundColors.slice(0, data.length),
 		                hoverOffset: 10,
 		                borderColor: body.classList.contains('light-mode') ? '#FFFFFF' : '#1A1A2E',
@@ -2581,7 +2598,18 @@
 		                        }
 		                    }
 		                },
-		                title: { display: false }
+		                title: { display: false },
+		                // 👉 AFFICHAGE DES POURCENTAGES DANS LES TOOLTIPS
+		                tooltip: {
+		                    callbacks: {
+		                        label: function(context) {
+		                            const label = context.label || '';
+		                            const percentage = context.parsed.toFixed(1);
+		                            const montant = data[context.dataIndex].toFixed(2);
+		                            return `${label}: ${percentage}% (${montant} €)`;
+		                        }
+		                    }
+		                }
 		            }
 		        }
 		    });
@@ -3852,6 +3880,37 @@
 		        const lastSaveDate = new Date(lastSave);
 		        showToast(`Dernière sauvegarde : ${lastSaveDate.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}`, 'info', 4000);
 		    }
+			// 🚀 ENREGISTREMENT DU SERVICE WORKER (PWA)
+			if ('serviceWorker' in navigator) {
+			    window.addEventListener('load', () => {
+			        navigator.serviceWorker.register('/sw.js')
+			            .then(registration => {
+			                console.log('✅ Service Worker enregistré:', registration.scope);
+			            })
+			            .catch(error => {
+			                console.error('❌ Erreur Service Worker:', error);
+			            });
+			    });
+			}
+
+			// 📱 DÉTECTION DE L'INSTALLATION PWA
+			let deferredPrompt;
+			window.addEventListener('beforeinstallprompt', (e) => {
+			    e.preventDefault();
+			    deferredPrompt = e;
+    
+			    // Afficher un message d'installation
+			    showToast('💡 Installez Ralph comme application pour un accès rapide !', 'info', 5000);
+    
+			    // Optionnel : Créer un bouton d'installation personnalisé
+			    // (Tu peux ignorer ça pour l'instant)
+			});
+
+			// Détecter quand l'app est installée
+			window.addEventListener('appinstalled', () => {
+			    showToast('✅ Ralph est maintenant installé sur votre appareil !', 'success', 5000);
+			    deferredPrompt = null;
+			});
 		};
     </script>
 		<script>
