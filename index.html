@@ -1646,12 +1646,10 @@
 		    background: rgba(0, 0, 0, 0.6);
 		    z-index: 1999;
 		    display: none;
-		    pointer-events: none; /* 👈 AJOUTE CETTE LIGNE */
 		}
 
 		#menu-overlay.active {
 		    display: block;
-		    pointer-events: auto; /* 👈 ET CELLE-CI */
 		}
     </style>
 </head>
@@ -1745,11 +1743,6 @@
         <div style="clear:both;"></div>
 		
 		<!-- Bouton burger (visible uniquement sur mobile) -->
-		<button id="burger-menu" style="display: none;">
-		    <i class="fas fa-bars"></i>
-		</button>
-		
-		<!-- Bouton burger mobile -->
 		<button id="burger-menu" style="display: none;">
 		    <i class="fas fa-bars"></i>
 		</button>
@@ -4294,41 +4287,47 @@
 		    await supabase.auth.signOut();
 		    window.location.href = 'auth.html';
 		}
-		
-		// 📱 GESTION DU MENU BURGER - CODE UNIQUE
+		// 📱 Gestion du menu burger - À PLACER AVANT window.onload
 		document.addEventListener('DOMContentLoaded', function() {
 		    const burgerBtn = document.getElementById('burger-menu');
 		    const mainNav = document.getElementById('main-nav');
 		    const overlay = document.getElementById('menu-overlay');
+		    const navButtons = document.querySelectorAll('.nav-btn');
     
-		    console.log('🍔 Init burger:', burgerBtn, mainNav, overlay);
+		    console.log('🍔 Burger menu init:', { burgerBtn, mainNav, overlay }); // Debug
     
 		    if (burgerBtn && mainNav && overlay) {
+		        // Ouvrir/fermer le menu
 		        burgerBtn.addEventListener('click', function(e) {
 		            e.preventDefault();
 		            e.stopPropagation();
-		            console.log('🍔 Click détecté!');
+		            console.log('🍔 Burger clicked!'); // Debug
 		            mainNav.classList.toggle('open');
 		            overlay.classList.toggle('active');
 		        });
         
+		        // Fermer avec l'overlay
 		        overlay.addEventListener('click', function() {
+		            console.log('🍔 Overlay clicked!'); // Debug
 		            mainNav.classList.remove('open');
 		            overlay.classList.remove('active');
 		        });
         
-		        // Fermer après clic sur nav
-		        document.querySelectorAll('.nav-btn').forEach(btn => {
+		        // Fermer après clic sur un bouton de navigation
+		        navButtons.forEach(btn => {
 		            btn.addEventListener('click', function() {
 		                if (window.innerWidth <= 768) {
+		                    console.log('🍔 Nav button clicked on mobile'); // Debug
 		                    mainNav.classList.remove('open');
 		                    overlay.classList.remove('active');
 		                }
 		            });
 		        });
+		    } else {
+		        console.error('❌ Menu burger elements not found:', { burgerBtn, mainNav, overlay });
 		    }
 		});
-		
+
 		window.onload = async function() {
 		    // ✅ 1. INITIALISER LES BOUTONS EN PREMIER
 		    loadThemePreference();
@@ -4452,6 +4451,12 @@
 			        installButton.style.display = 'none';
 			    }
 			});
+
+			if (burgerMenu) {
+			    burgerMenu.addEventListener('click', () => {
+			        mainNav.classList.toggle('open');
+			        menuOverlay.classList.toggle('active');
+			    });
     
 			    // Fermer le menu en cliquant sur l'overlay
 			    menuOverlay.addEventListener('click', () => {
