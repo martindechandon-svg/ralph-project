@@ -4294,6 +4294,46 @@
 		    await supabase.auth.signOut();
 		    window.location.href = 'auth.html';
 		}
+		// 📱 Gestion du menu burger - À PLACER AVANT window.onload
+		document.addEventListener('DOMContentLoaded', function() {
+		    const burgerBtn = document.getElementById('burger-menu');
+		    const mainNav = document.getElementById('main-nav');
+		    const overlay = document.getElementById('menu-overlay');
+		    const navButtons = document.querySelectorAll('.nav-btn');
+    
+		    console.log('🍔 Burger menu init:', { burgerBtn, mainNav, overlay }); // Debug
+    
+		    if (burgerBtn && mainNav && overlay) {
+		        // Ouvrir/fermer le menu
+		        burgerBtn.addEventListener('click', function(e) {
+		            e.preventDefault();
+		            e.stopPropagation();
+		            console.log('🍔 Burger clicked!'); // Debug
+		            mainNav.classList.toggle('open');
+		            overlay.classList.toggle('active');
+		        });
+        
+		        // Fermer avec l'overlay
+		        overlay.addEventListener('click', function() {
+		            console.log('🍔 Overlay clicked!'); // Debug
+		            mainNav.classList.remove('open');
+		            overlay.classList.remove('active');
+		        });
+        
+		        // Fermer après clic sur un bouton de navigation
+		        navButtons.forEach(btn => {
+		            btn.addEventListener('click', function() {
+		                if (window.innerWidth <= 768) {
+		                    console.log('🍔 Nav button clicked on mobile'); // Debug
+		                    mainNav.classList.remove('open');
+		                    overlay.classList.remove('active');
+		                }
+		            });
+		        });
+		    } else {
+		        console.error('❌ Menu burger elements not found:', { burgerBtn, mainNav, overlay });
+		    }
+		});
 
 		window.onload = async function() {
 		    // ✅ 1. INITIALISER LES BOUTONS EN PREMIER
@@ -4418,10 +4458,6 @@
 			        installButton.style.display = 'none';
 			    }
 			});
-			// Gestion du menu burger (mobile uniquement)
-			const burgerMenu = document.getElementById('burger-menu');
-			const mainNav = document.getElementById('main-nav');
-			const menuOverlay = document.getElementById('menu-overlay');
 
 			if (burgerMenu) {
 			    burgerMenu.addEventListener('click', () => {
@@ -4441,31 +4477,6 @@
 			            if (window.innerWidth <= 768) {
 			                mainNav.classList.remove('open');
 			                menuOverlay.classList.remove('active');
-			            }
-			        });
-			    });
-			}
-			// Gestion menu burger mobile
-			const burgerBtn = document.getElementById('burger-menu');
-			const overlay = document.getElementById('menu-overlay');
-
-			if (burgerBtn && overlay) {
-				burgerBtn.onclick = () => {
-				    mainNav.classList.toggle('open');
-				    overlay.classList.toggle('active'); // 👈 par celle-ci
-				};
-    
-			    overlay.onclick = () => {
-			        mainNav.classList.remove('open');
-			        overlay.classList.remove('active');
-			    };
-    
-			    // Fermer après clic sur nav
-			    navButtons.forEach(btn => {
-			        btn.addEventListener('click', () => {
-			            if (window.innerWidth <= 768) {
-			                mainNav.classList.remove('open');
-			                overlay.style.display = 'none';
 			            }
 			        });
 			    });
