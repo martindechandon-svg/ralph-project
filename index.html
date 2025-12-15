@@ -1601,17 +1601,43 @@
 			        font-size: 0.85em !important;
 			    }
     
-			    /* Graphiques */
-			    .analysis-grid {
-			        flex-direction: column;
-			        gap: 15px;
-			    }
-    
-			    .chart-container {
-			        width: 100% !important;
-			        padding: 15px;
-			        min-height: 250px;
-			    }
+				/* Graphiques */
+				.analysis-grid {
+				    flex-direction: column !important;
+				    gap: 20px !important;
+				    display: flex !important;
+				}
+
+				.chart-container {
+				    width: 100% !important;
+				    padding: 15px;
+				    min-height: 250px;
+				    margin-bottom: 20px !important;
+				    display: block !important;
+				    clear: both !important;
+				}
+
+				.chart-container canvas {
+				    max-width: 100% !important;
+				    height: auto !important;
+				}
+				
+				/* Espacement entre les sections d'analyse */
+				#analysis-screen h2 {
+				    margin-top: 30px !important;
+				    clear: both !important;
+				}
+
+				#analysis-screen .separator {
+				    margin: 30px 0 !important;
+				    clear: both !important;
+				}
+
+				#solde-analysis {
+				    margin-bottom: 30px !important;
+				    display: block !important;
+				    clear: both !important;
+				}
     
 			    #solde-analysis {
 			        font-size: 2em;
