@@ -3630,21 +3630,88 @@
 		// Vérification de l'authentification
 		let currentUser = null;
 
-		async function checkAuth() {
-		    const { data: { session } } = await supabase.auth.getSession();
+		window.onload = async function() {
+		    // ✅ 1. INITIALISER LES BOUTONS EN PREMIER
+		    loadThemePreference();
     
-		    if (!session) {
-		        // Pas connecté, rediriger vers auth.html
-		        window.location.href = 'auth.html';
-		        return false;
+		    // Attacher les event listeners de navigation IMMÉDIATEMENT
+		    navButtons.forEach(button => {
+		        button.addEventListener('click', function() {
+		            showScreen(this.getAttribute('data-screen'));
+		        });
+		    });
+    
+		    // ✅ 2. VÉRIFIER L'AUTH ENSUITE
+		    const isAuth = await checkAuth();
+		    if (!isAuth) {
+		        // Redirection après un court délai pour voir l'erreur
+		        setTimeout(() => {
+		            window.location.href = 'auth.html';
+		        }, 100);
+		        return;
 		    }
     
-		    currentUser = session.user;
-		    console.log('✅ Utilisateur connecté:', currentUser.email);
+		    // ✅ 3. CHARGER LES DONNÉES UTILISATEUR
+		    chargerSelecteurs();
+		    await migrateLocalStorageToSupabase();
+		    await chargerListeMois();
+		    chargerRecurrences();
+		    setupAutoSave();
+		    mettreAJourTimeline();
+		    initialiserFiltres();
+		    loadActiveScreen();
+
+		    const lastSave = localStorage.getItem(LAST_SAVE_KEY);
+		    if (lastSave) {
+		        const lastSaveDate = new Date(lastSave);
+		        showToast(`Dernière sauvegarde : ${lastSaveDate.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}`, 'info', 4000);
+		    }
     
-		    // Remplacer 'demo-user' par l'ID réel de l'utilisateur
-		    return true;
-		}
+		    // Service Worker
+		    if ('serviceWorker' in navigator) {
+		        navigator.serviceWorker.register('/sw.js')
+		            .then(registration => {
+		                console.log('✅ Service Worker enregistré:', registration.scope);
+		            })
+		            .catch(error => {
+		                console.error('❌ Erreur Service Worker:', error);
+		            });
+		    }
+
+		    // Installation PWA
+		    let deferredPrompt;
+		    const installButton = document.getElementById('install-button');
+
+		    window.addEventListener('beforeinstallprompt', (e) => {
+		        e.preventDefault();
+		        deferredPrompt = e;
+		        if (installButton) {
+		            installButton.style.display = 'flex';
+		            installButton.style.alignItems = 'center';
+		            installButton.style.gap = '8px';
+		        }
+		    });
+
+		    if (installButton) {
+		        installButton.addEventListener('click', async () => {
+		            if (!deferredPrompt) return;
+		            deferredPrompt.prompt();
+		            const { outcome } = await deferredPrompt.userChoice;
+		            if (outcome === 'accepted') {
+		                showToast('✅ Ralph est en cours d\'installation !', 'success');
+		            }
+		            deferredPrompt = null;
+		            installButton.style.display = 'none';
+		        });
+		    }
+
+		    window.addEventListener('appinstalled', () => {
+		        showToast('✅ Ralph est maintenant installé sur votre appareil !', 'success');
+		        if (installButton) {
+		            installButton.style.display = 'none';
+		        }
+		    });
+		};
 		
 		// Fonction pour charger les informations du compte
 		async function loadAccountInfo() {
