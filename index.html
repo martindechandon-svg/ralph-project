@@ -1267,10 +1267,83 @@
 		        width: 100%;
 		        justify-content: center;
 		    }
+			@media (max-width: 768px) {
+			    /* Bouton burger */
+			    #burger-menu {
+			        display: flex !important;
+			        align-items: center;
+			        justify-content: center;
+			        position: fixed;
+			        top: 15px;
+			        right: 15px;
+			        z-index: 2000;
+			        width: 50px;
+			        height: 50px;
+			        border: none;
+			        border-radius: 12px;
+			        background: var(--neon-accent);
+			        color: var(--card-color);
+			        font-size: 1.5em;
+			        cursor: pointer;
+			        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+			        transition: all 0.3s;
+			    }
+    
+			    #burger-menu:active {
+			        transform: scale(0.95);
+			    }
+    
+			    /* Menu de navigation mobile */
+			    #main-nav {
+			        position: fixed;
+			        top: 0;
+			        right: -100%;
+			        width: 80%;
+			        max-width: 300px;
+			        height: 100vh;
+			        background: var(--card-color);
+			        box-shadow: -4px 0 20px rgba(0, 0, 0, 0.5);
+			        z-index: 1999;
+			        flex-direction: column;
+			        padding: 80px 20px 20px;
+			        gap: 10px;
+			        overflow-y: auto;
+			        transition: right 0.3s ease;
+			    }
+    
+			    #main-nav.open {
+			        right: 0;
+			    }
+    
+			    #main-nav .nav-btn {
+			        width: 100%;
+			        justify-content: flex-start;
+			        padding: 15px 20px;
+			        font-size: 1em;
+			    }
+    
+			    /* Overlay sombre derrière le menu */
+			    #menu-overlay {
+			        display: none;
+			        position: fixed;
+			        top: 0;
+			        left: 0;
+			        width: 100%;
+			        height: 100vh;
+			        background: rgba(0, 0, 0, 0.5);
+			        z-index: 1998;
+			    }
+    
+			    #menu-overlay.active {
+			        display: block;
+			    }
+			}
 		}
     </style>
 </head>
 <body>
+	
+	<div id="menu-overlay"></div>
 
     <div id="category-modal" role="dialog" aria-hidden="true">
         <h4><i class="fas fa-plus-circle"></i> Ajouter une catégorie</h4>
@@ -1356,6 +1429,11 @@
             <span id="solde-value-persistent" class="balance-amount positif">0.00 €</span>
         </div>
         <div style="clear:both;"></div>
+		
+		<!-- Bouton burger (visible uniquement sur mobile) -->
+		<button id="burger-menu" style="display: none;">
+		    <i class="fas fa-bars"></i>
+		</button>
 
 <nav id="main-nav">
     <button class="nav-btn active" data-screen="dashboard-screen"><i class="fas fa-tachometer-alt"></i> Tableau de Bord</button>
@@ -4016,6 +4094,33 @@
 			        installButton.style.display = 'none';
 			    }
 			});
+			// Gestion du menu burger (mobile uniquement)
+			const burgerMenu = document.getElementById('burger-menu');
+			const mainNav = document.getElementById('main-nav');
+			const menuOverlay = document.getElementById('menu-overlay');
+
+			if (burgerMenu) {
+			    burgerMenu.addEventListener('click', () => {
+			        mainNav.classList.toggle('open');
+			        menuOverlay.classList.toggle('active');
+			    });
+    
+			    // Fermer le menu en cliquant sur l'overlay
+			    menuOverlay.addEventListener('click', () => {
+			        mainNav.classList.remove('open');
+			        menuOverlay.classList.remove('active');
+			    });
+    
+			    // Fermer le menu après avoir cliqué sur un bouton
+			    navButtons.forEach(btn => {
+			        btn.addEventListener('click', () => {
+			            if (window.innerWidth <= 768) {
+			                mainNav.classList.remove('open');
+			                menuOverlay.classList.remove('active');
+			            }
+			        });
+			    });
+			}
     </script>
 		<script>
 		    window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
