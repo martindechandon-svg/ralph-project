@@ -3103,6 +3103,10 @@
 		}
 		
 		// Variables pour la pagination
+		let triActuel = {
+		    colonne: 'date',
+		    ordre: 'desc'
+		};
 		let currentPage = 1;
 		const transactionsPerPage = 5;
 
@@ -3147,7 +3151,7 @@
 		        activeIcon.style.opacity = '1';
 		    }
     
-		    currentPage = 1; // Reset la pagination lors d'un nouveau tri
+		    currentPage = 1; // Reset la pagination
     
 		    // Réafficher
 		    if (Object.values(filtresActifs).some(v => v !== '')) {
@@ -3162,15 +3166,14 @@
 		        currentPage = 1;
 		    }
     
-		    // 🔧 Adapter la pagination selon l'écran
-		    const itemsPerPage = window.innerWidth <= 768 ? 5 : transactions.length;
+		    // 🔧 DÉTECTION FIABLE DU MOBILE
+		    const isMobile = window.matchMedia('(max-width: 768px)').matches;
+		    const itemsPerPage = isMobile ? 5 : transactions.length;
     
 		    const startIndex = 0;
 		    const endIndex = currentPage * itemsPerPage;
 		    const transactionsAffichees = transactions.slice(startIndex, endIndex);
 		    const hasMore = endIndex < transactions.length;
-    
-		    // ... reste du code
     
 		    transactionList.innerHTML = '';
     
@@ -3203,7 +3206,7 @@
 		        deleteCell.appendChild(deleteButton);
         
 		        // Mobile : clic sur la ligne
-		        if (window.innerWidth <= 768) {
+		        if (isMobile) {
 		            row.onclick = function(e) {
 		                if (e.target.tagName !== 'BUTTON' && !e.target.closest('button')) {
 		                    supprimerTransactionMobile(realIndex, row, t);
@@ -3223,8 +3226,8 @@
 		        table.parentNode.insertBefore(countInfo, table.nextSibling);
 		    }
     
-		    // Bouton "Voir plus" si nécessaire
-		    if (hasMore) {
+		    // Bouton "Voir plus" si nécessaire (UNIQUEMENT SUR MOBILE)
+		    if (hasMore && isMobile) {
 		        const loadMoreBtn = document.createElement('button');
 		        loadMoreBtn.id = 'load-more-btn';
 		        loadMoreBtn.className = 'app-btn save-btn';
