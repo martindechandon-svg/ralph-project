@@ -3162,10 +3162,15 @@
 		        currentPage = 1;
 		    }
     
+		    // 🔧 Adapter la pagination selon l'écran
+		    const itemsPerPage = window.innerWidth <= 768 ? 5 : transactions.length;
+    
 		    const startIndex = 0;
-		    const endIndex = currentPage * transactionsPerPage;
+		    const endIndex = currentPage * itemsPerPage;
 		    const transactionsAffichees = transactions.slice(startIndex, endIndex);
 		    const hasMore = endIndex < transactions.length;
+    
+		    // ... reste du code
     
 		    transactionList.innerHTML = '';
     
