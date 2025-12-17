@@ -2276,6 +2276,37 @@
 		        margin-top: 5px;
 		        font-weight: 600;
 		    }
+			/* Pull-to-refresh pour mobile */
+			#refresh-indicator {
+			    position: fixed;
+			    top: -60px;
+			    left: 50%;
+			    transform: translateX(-50%);
+			    background: var(--neon-accent);
+			    color: var(--card-color);
+			    padding: 12px 24px;
+			    border-radius: 0 0 12px 12px;
+			    font-weight: 600;
+			    display: flex;
+			    align-items: center;
+			    gap: 10px;
+			    z-index: 9999;
+			    transition: top 0.3s ease;
+			    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+			}
+
+			#refresh-indicator.visible {
+			    top: 0;
+			}
+
+			#refresh-indicator i {
+			    animation: spin 1s linear infinite;
+			}
+
+			@keyframes spin {
+			    from { transform: rotate(0deg); }
+			    to { transform: rotate(360deg); }
+			}
 		}
     </style>
 </head>
@@ -5297,6 +5328,93 @@
 		        mobileAddBtn.style.display = 'flex';
 		    }
 		});
+		
+		// 🔄 PULL-TO-REFRESH POUR MOBILE
+		let touchStartY = 0;
+		let touchEndY = 0;
+		let isPulling = false;
+		const refreshThreshold = 80;
+
+		function setupPullToRefresh() {
+		    const container = document.querySelector('.container');
+		    const indicator = document.createElement('div');
+		    indicator.id = 'refresh-indicator';
+		    indicator.innerHTML = '<i class="fas fa-sync-alt"></i> Tirez pour rafraîchir';
+		    document.body.appendChild(indicator);
+
+		    let startY = 0;
+		    let currentY = 0;
+
+		    container.addEventListener('touchstart', (e) => {
+		        // Ne fonctionne que si on est tout en haut de la page
+		        if (window.scrollY === 0) {
+		            startY = e.touches[0].clientY;
+		            isPulling = true;
+		        }
+		    }, { passive: true });
+
+		    container.addEventListener('touchmove', (e) => {
+		        if (!isPulling) return;
+
+		        currentY = e.touches[0].clientY;
+		        const pullDistance = currentY - startY;
+
+		        if (pullDistance > 0 && pullDistance < 150) {
+		            indicator.style.top = (pullDistance - 60) + 'px';
+            
+		            if (pullDistance > refreshThreshold) {
+		                indicator.innerHTML = '<i class="fas fa-arrow-down"></i> Relâchez pour rafraîchir';
+		                indicator.style.background = 'var(--neon-success)';
+		            } else {
+		                indicator.innerHTML = '<i class="fas fa-arrow-down"></i> Tirez pour rafraîchir';
+		                indicator.style.background = 'var(--neon-accent)';
+		            }
+		        }
+		    }, { passive: true });
+
+		    container.addEventListener('touchend', async (e) => {
+		        if (!isPulling) return;
+
+		        const pullDistance = currentY - startY;
+
+		        if (pullDistance > refreshThreshold) {
+		            // Déclencher le rafraîchissement
+		            indicator.innerHTML = '<i class="fas fa-sync-alt"></i> Rafraîchissement...';
+		            indicator.style.background = 'var(--neon-success)';
+		            indicator.classList.add('visible');
+
+		            try {
+		                // Forcer le rechargement depuis Supabase
+		                await chargerTransactions();
+		                await mettreAJourTimeline();
+                
+		                if (document.getElementById('analysis-screen').classList.contains('active')) {
+		                    mettreAJourGraphique();
+		                    await mettreAJourGraphiqueHistorique();
+		                    await mettreAJourGraphiqueRevenusDepenses();
+		                    mettreAJourSoldeEtTotaux();
+		                    mettreAJourSuiviBudget();
+		                }
+
+		                showToast('✅ Données rafraîchies !', 'success', 2000);
+		            } catch (error) {
+		                showToast('❌ Erreur lors du rafraîchissement', 'error');
+		            }
+
+		            setTimeout(() => {
+		                indicator.classList.remove('visible');
+		                indicator.style.top = '-60px';
+		            }, 1500);
+		        } else {
+		            // Retour à la position initiale
+		            indicator.style.top = '-60px';
+		        }
+
+		        isPulling = false;
+		        startY = 0;
+		        currentY = 0;
+		    }, { passive: true });
+		}
 
 		window.onload = async function() {
 		    // ✅ 1. INITIALISER LES BOUTONS EN PREMIER
@@ -5326,6 +5444,7 @@
 		    setupAutoSave();
 		    mettreAJourTimeline();
 		    initialiserFiltres();
+			setupPullToRefresh();
 		    loadActiveScreen();
 
 		    const lastSave = localStorage.getItem(LAST_SAVE_KEY);
