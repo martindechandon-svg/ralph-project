@@ -3988,16 +3988,24 @@
 		                soldeOuverture: parseFloat(monthData.solde_ouverture) || 0,
 		                budgets: monthData.budgets || {}
 		            };
-		        } else {
-		            // Fallback sur localStorage si pas dans Supabase
-		            let allData = JSON.parse(localStorage.getItem(STORAGE_KEY)) || {};
-		            if (allData[monthToLoad]) {
-		                currentMonthData = JSON.parse(allData[monthToLoad]);
-		                // Proposer de migrer vers Supabase
-		                if (confirm(`Ce mois existe en local. Voulez-vous le sauvegarder dans le cloud ?`)) {
-		                    await sauvegarderTransactions(false);
-		                }
-		            } else {
+				} else {
+				    // Fallback sur localStorage si pas dans Supabase
+				    let allData = JSON.parse(localStorage.getItem(STORAGE_KEY)) || {};
+				    if (allData[monthToLoad]) {
+				        currentMonthData = JSON.parse(allData[monthToLoad]);
+        
+				        // Vérifier si on a déjà proposé la migration pour ce mois
+				        const migrationKey = `migration_proposed_${monthToLoad}`;
+				        const alreadyProposed = sessionStorage.getItem(migrationKey);
+        
+				        if (!alreadyProposed) {
+				            sessionStorage.setItem(migrationKey, 'true');
+				            if (confirm(`Ce mois existe en local. Voulez-vous le sauvegarder dans le cloud ?`)) {
+				                await sauvegarderTransactions(false);
+				            }
+				        }
+				    }
+					else {
 		                showModal(`Erreur: Les données pour "${monthToLoad}" sont introuvables.`, 'error');
 		                return;
 		            }
