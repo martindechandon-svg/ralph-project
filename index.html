@@ -1358,6 +1358,70 @@
 			        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 			        cursor: pointer;
 			    }
+				
+				/* 📱 FILTRES COMPACTS SUR MOBILE */
+				@media (max-width: 768px) {
+				    /* Masquer le titre H2 sur mobile */
+				    #dashboard-screen h2:has(+ .filter-container) {
+				        display: none;
+				    }
+    
+				    /* Barre de filtres ultra-compacte */
+				    .filter-container {
+				        display: flex !important;
+				        flex-direction: row !important;
+				        gap: 6px !important;
+				        padding: 8px !important;
+				        margin-bottom: 10px !important;
+				        background: var(--input-bg);
+				        border-radius: 12px;
+				        overflow-x: auto;
+				        -webkit-overflow-scrolling: touch;
+				    }
+    
+				    .filter-container input,
+				    .filter-container select,
+				    .filter-container button {
+				        min-width: 120px !important;
+				        flex-shrink: 0;
+				        padding: 10px 12px !important;
+				        font-size: 0.85em !important;
+				        border-radius: 8px !important;
+				    }
+    
+				    /* Icône pour le champ de recherche */
+				    #search-input {
+				        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%23A0A0C0' viewBox='0 0 16 16'%3E%3Cpath d='M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z'/%3E%3C/svg%3E");
+				        background-repeat: no-repeat;
+				        background-position: 12px center;
+				        padding-left: 38px !important;
+				    }
+    
+				    /* Bouton réinitialiser plus compact */
+				    .filter-container button {
+				        min-width: auto !important;
+				        width: 40px;
+				        padding: 10px !important;
+				    }
+    
+				    .filter-container button span {
+				        display: none;
+				    }
+    
+				    /* Scrollbar custom pour les filtres */
+				    .filter-container::-webkit-scrollbar {
+				        height: 4px;
+				    }
+    
+				    .filter-container::-webkit-scrollbar-track {
+				        background: transparent;
+				    }
+    
+				    .filter-container::-webkit-scrollbar-thumb {
+				        background: var(--neon-accent);
+				        border-radius: 4px;
+				    }
+				}
     
 			    /* Navigation mobile en overlay */
 			    #main-nav {
@@ -2579,9 +2643,9 @@
     <select id="filter-account" style="width: 100%; background-color: var(--card-color);">
         <option value="">Tous comptes</option>
     </select>
-<button class="app-btn save-btn" onclick="reinitialiserFiltres()" style="padding: 12px 20px; text-transform: none;">
-	        <i class="fas fa-redo"></i> Réinitialiser
-    </button>
+<button class="app-btn save-btn" onclick="reinitialiserFiltres()" style="padding: 12px 20px; text-transform: none;" title="Réinitialiser les filtres">
+    <i class="fas fa-redo"></i> <span>Réinitialiser</span>
+</button>
 </div>
             <table>
 <thead>
