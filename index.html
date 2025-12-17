@@ -5419,6 +5419,11 @@
 		const refreshThreshold = 80;
 
 		function setupPullToRefresh() {
+		    // 🔧 Ne rien faire si on n'est pas sur mobile
+		    if (window.innerWidth > 768) {
+		        return;
+		    }
+    
 		    const container = document.querySelector('.container');
 		    const indicator = document.createElement('div');
 		    indicator.id = 'refresh-indicator';
@@ -5527,8 +5532,9 @@
 		    setupAutoSave();
 		    mettreAJourTimeline();
 		    initialiserFiltres();
-			setupPullToRefresh();
-		    loadActiveScreen();
+			if (window.innerWidth <= 768) {
+			    setupPullToRefresh();
+			}		    loadActiveScreen();
 
 		    const lastSave = localStorage.getItem(LAST_SAVE_KEY);
 		    if (lastSave) {
