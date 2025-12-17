@@ -3993,23 +3993,11 @@
 				    let allData = JSON.parse(localStorage.getItem(STORAGE_KEY)) || {};
 				    if (allData[monthToLoad]) {
 				        currentMonthData = JSON.parse(allData[monthToLoad]);
-        
-				        // Vérifier si on a déjà proposé la migration pour ce mois
-				        const migrationKey = `migration_proposed_${monthToLoad}`;
-				        const alreadyProposed = sessionStorage.getItem(migrationKey);
-        
-				        if (!alreadyProposed) {
-				            sessionStorage.setItem(migrationKey, 'true');
-				            if (confirm(`Ce mois existe en local. Voulez-vous le sauvegarder dans le cloud ?`)) {
-				                await sauvegarderTransactions(false);
-				            }
-				        }
+				    } else {
+				        showModal(`Erreur: Les données pour "${monthToLoad}" sont introuvables.`, 'error');
+				        return;
 				    }
-					else {
-		                showModal(`Erreur: Les données pour "${monthToLoad}" sont introuvables.`, 'error');
-		                return;
-		            }
-		        }
+				}
 
 		        transactions = currentMonthData.transactions;
 		        currentMonthInput.value = monthToLoad;
@@ -4824,54 +4812,6 @@
 		        showModal('Erreur lors de la suppression : ' + error.message, 'error');
 		    }
 		}
-		
-		// Migration automatique des données localStorage vers Supabase
-		async function migrateLocalStorageToSupabase() {
-		    if (!currentUser) return;
-
-		    const localData = JSON.parse(localStorage.getItem(STORAGE_KEY)) || {};
-		    const monthNames = Object.keys(localData);
-
-		    if (monthNames.length === 0) return;
-
-		    // Vérifier si des données existent déjà dans Supabase
-		    const { data: existingMonths } = await supabase
-		        .from('months')
-		        .select('month_name')
-		        .eq('user_id', currentUser.id);
-
-		    if (existingMonths && existingMonths.length > 0) {
-		        // Données déjà migrées
-		        return;
-		    }
-
-		    // Proposer la migration
-		    const migrate = confirm(
-		        `Nous avons détecté ${monthNames.length} mois sauvegardés localement.\n\n` +
-		        `Voulez-vous les transférer dans le cloud pour y accéder depuis tous vos appareils ?`
-		    );
-
-		    if (!migrate) return;
-
-		    showToast('Migration en cours... ⏳', 'info', 5000);
-
-		    try {
-		        for (const monthName of monthNames) {
-		            const monthData = JSON.parse(localData[monthName]);
-		            currentMonthData = monthData;
-		            currentMonthInput.value = monthName;
-		            soldeOuvertureInput.value = monthData.soldeOuverture;
-		            await sauvegarderTransactions(false);
-		        }
-
-		        showModal(`✅ Migration réussie ! ${monthNames.length} mois transférés dans le cloud.`, 'success', 5000);
-		        await chargerListeMois();
-
-		    } catch (error) {
-		        console.error('Erreur migration:', error);
-		        showModal('Erreur lors de la migration. Vos données locales sont toujours disponibles.', 'error');
-		    }
-		}
 
 		// Fonction de déconnexion
 		async function logout() {
@@ -5056,7 +4996,6 @@
     
 		    // ✅ 3. CHARGER LES DONNÉES UTILISATEUR
 		    chargerSelecteurs();
-		    await migrateLocalStorageToSupabase();
 		    await chargerListeMois();
 		    chargerRecurrences();
 		    setupAutoSave();
