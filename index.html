@@ -1359,6 +1359,28 @@
 			        cursor: pointer;
 			    }
 				
+				/* À ajouter dans votre <style> vers la ligne 1300 */
+				@media (max-width: 768px) {
+				    #mobile-add-btn {
+				        display: flex !important;
+				        position: fixed;
+				        bottom: 90px;
+				        right: 30px;
+				        width: 60px;
+				        height: 60px;
+				        border-radius: 50%;
+				        background: var(--neon-accent);
+				        color: var(--card-color);
+				        border: none;
+				        box-shadow: 0 0 15px rgba(0, 255, 255, 0.5);
+				        cursor: pointer;
+				        align-items: center;
+				        justify-content: center;
+				        font-size: 1.5em;
+				        z-index: 1500;
+				    }
+				}
+				
 				/* 📱 FILTRES COMPACTS SUR MOBILE */
 				@media (max-width: 768px) {
 				    /* Masquer le titre H2 sur mobile */
@@ -3166,14 +3188,27 @@
 		        currentPage = 1;
 		    }
     
+		    // 🔧 VÉRIFICATION SI TRANSACTIONS EXISTE
+		    if (!transactions || transactions.length === 0) {
+		        transactionList.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 30px; color: var(--light-text-color);">Aucune transaction pour ce mois</td></tr>';
+		        return;
+		    }
+    
 		    // 🔧 DÉTECTION FIABLE DU MOBILE
 		    const isMobile = window.matchMedia('(max-width: 768px)').matches;
 		    const itemsPerPage = isMobile ? 5 : transactions.length;
+    
+		    console.log('📱 Mode mobile:', isMobile); // DEBUG
+		    console.log('📊 Transactions par page:', itemsPerPage); // DEBUG
+		    console.log('📋 Nombre total de transactions:', transactions.length); // DEBUG
     
 		    const startIndex = 0;
 		    const endIndex = currentPage * itemsPerPage;
 		    const transactionsAffichees = transactions.slice(startIndex, endIndex);
 		    const hasMore = endIndex < transactions.length;
+    
+		    console.log('✅ Transactions affichées:', transactionsAffichees.length); // DEBUG
+		    console.log('🔽 A plus de transactions:', hasMore); // DEBUG
     
 		    transactionList.innerHTML = '';
     
@@ -3228,6 +3263,7 @@
     
 		    // Bouton "Voir plus" si nécessaire (UNIQUEMENT SUR MOBILE)
 		    if (hasMore && isMobile) {
+		        console.log('🔽 Création du bouton "Voir plus"'); // DEBUG
 		        const loadMoreBtn = document.createElement('button');
 		        loadMoreBtn.id = 'load-more-btn';
 		        loadMoreBtn.className = 'app-btn save-btn';
@@ -3241,6 +3277,8 @@
 		        if (table) {
 		            table.parentNode.insertBefore(loadMoreBtn, countInfo.nextSibling);
 		        }
+		    } else {
+		        console.log('❌ Pas de bouton "Voir plus" - hasMore:', hasMore, 'isMobile:', isMobile); // DEBUG
 		    }
 		}
 
