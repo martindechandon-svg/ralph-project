@@ -1427,7 +1427,7 @@
 			        margin-bottom: 15px;
 			        word-break: break-word;
 			    }
-				h2 #current-tab-name {
+				h2 .month-in-title {
 				    display: none;
 				}
     
@@ -2364,8 +2364,10 @@
 
             <hr class="separator">
 
-<h2><i class="fas fa-list-alt"></i> Historique des Transactions (<span id="current-tab-name" style="color:var(--neon-success);">Janvier 2026</span>)</h2>
-
+<h2>
+    <i class="fas fa-list-alt"></i> Historique des Transactions 
+    <span class="month-in-title">(<span id="current-tab-name" style="color:var(--neon-success);">Janvier 2026</span>)</span>
+</h2>
 <div class="filter-container" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; padding: 20px; border-radius: var(--border-radius); margin-bottom: 20px; background-color: var(--input-bg);">
     <input type="text" id="search-input" placeholder="🔍 Rechercher..." style="width: 100%; background-color: var(--card-color);">
     <select id="filter-type" style="width: 100%; background-color: var(--card-color);">
