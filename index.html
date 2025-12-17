@@ -2596,6 +2596,20 @@
             <i class="fas fa-trash-alt"></i> Supprimer mon compte
         </button>
     </div>
+	
+	<hr style="border: 0; height: 1px; background: var(--border-color); margin: 30px 0;">
+
+	<div style="margin: 20px 0;">
+	    <h4 style="color: var(--text-color); font-size: 1em; margin-bottom: 10px;">
+	        <i class="fas fa-sync"></i> Resynchroniser les données
+	    </h4>
+	    <p style="color: var(--light-text-color); font-size: 0.9em; margin-bottom: 15px;">
+	        Force le rechargement de toutes les données depuis le cloud
+	    </p>
+	    <button onclick="forcerResync()" class="app-btn save-btn">
+	        <i class="fas fa-cloud-download-alt"></i> Resynchroniser
+	    </button>
+	</div>
 </div>
 
 	            <!-- Informations système -->
@@ -3986,8 +4000,7 @@
 		    }
 
 		    try {
-		        // 🔥 CHARGER DEPUIS SUPABASE
-		        // 1. Charger les infos du mois
+		        // 🔥 CHARGER DEPUIS SUPABASE (SOURCE DE VÉRITÉ)
 		        const { data: monthData, error: monthError } = await supabase
 		            .from('months')
 		            .select('*')
@@ -3997,6 +4010,17 @@
 
 		        if (monthError && monthError.code !== 'PGRST116') {
 		            throw monthError;
+		        }
+
+		        // Si le mois n'existe pas dans Supabase
+		        if (!monthData) {
+		            showModal(`Le mois "${monthToLoad}" n'existe pas dans la base de données.`, 'error');
+		            // Nettoyer localStorage si incohérent
+		            let allData = JSON.parse(localStorage.getItem(STORAGE_KEY)) || {};
+		            delete allData[monthToLoad];
+		            localStorage.setItem(STORAGE_KEY, JSON.stringify(allData));
+		            await chargerListeMois();
+		            return;
 		        }
 
 		        // 2. Charger les transactions du mois
@@ -4010,30 +4034,24 @@
 		        if (transError) throw transError;
 
 		        // 3. Reconstruire currentMonthData
-		        if (monthData) {
-		            currentMonthData = {
-		                transactions: (transactionsData || []).map(t => ({
-		                    date: t.date,
-		                    description: t.description,
-		                    montant: parseFloat(t.montant),
-		                    type: t.type,
-		                    categorie: t.categorie,
-		                    compte: t.compte,
-		                    recurrent: t.recurrent
-		                })),
-		                soldeOuverture: parseFloat(monthData.solde_ouverture) || 0,
-		                budgets: monthData.budgets || {}
-		            };
-				} else {
-				    // Fallback sur localStorage si pas dans Supabase
-				    let allData = JSON.parse(localStorage.getItem(STORAGE_KEY)) || {};
-				    if (allData[monthToLoad]) {
-				        currentMonthData = JSON.parse(allData[monthToLoad]);
-				    } else {
-				        showModal(`Erreur: Les données pour "${monthToLoad}" sont introuvables.`, 'error');
-				        return;
-				    }
-				}
+		        currentMonthData = {
+		            transactions: (transactionsData || []).map(t => ({
+		                date: t.date,
+		                description: t.description,
+		                montant: parseFloat(t.montant),
+		                type: t.type,
+		                categorie: t.categorie,
+		                compte: t.compte,
+		                recurrent: t.recurrent
+		            })),
+		            soldeOuverture: parseFloat(monthData.solde_ouverture) || 0,
+		            budgets: monthData.budgets || {}
+		        };
+
+		        // ✅ SYNCHRONISER DANS LOCALSTORAGE
+		        let allData = JSON.parse(localStorage.getItem(STORAGE_KEY)) || {};
+		        allData[monthToLoad] = JSON.stringify(currentMonthData);
+		        localStorage.setItem(STORAGE_KEY, JSON.stringify(allData));
 
 		        transactions = currentMonthData.transactions;
 		        currentMonthInput.value = monthToLoad;
@@ -4048,7 +4066,7 @@
 
 		        if (document.getElementById('analysis-screen').classList.contains('active')) {
 		            mettreAJourGraphique();
-		            mettreAJourGraphiqueHistorique();
+		            await mettreAJourGraphiqueHistorique();
 		            mettreAJourSoldeEtTotaux();
 		            mettreAJourSuiviBudget();
 		        }
@@ -4691,6 +4709,28 @@
 
 		// Vérification de l'authentification
 		let currentUser = null;
+		
+		async function forcerResync() {
+		    if (!currentUser) return;
+    
+		    const confirmed = confirm('Cette action va recharger toutes vos données depuis le cloud. Continuer ?');
+		    if (!confirmed) return;
+    
+		    try {
+		        showToast('Resynchronisation en cours...', 'info', 2000);
+        
+		        // Vider localStorage
+		        localStorage.removeItem(STORAGE_KEY);
+        
+		        // Recharger tout depuis Supabase
+		        await chargerListeMois();
+        
+		        showToast('✅ Données resynchronisées !', 'success');
+		    } catch (error) {
+		        console.error('Erreur resync:', error);
+		        showModal('Erreur lors de la resynchronisation : ' + error.message, 'error');
+		    }
+		}
 
 		async function checkAuth() {
 		    const { data: { session } } = await supabase.auth.getSession();
