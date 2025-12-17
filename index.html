@@ -3101,13 +3101,10 @@
     
 		    afficherTransactionsFiltrees(transactionsFiltrees, false); // Ne pas reset la page
 		}
-		let triActuel = {
-		    colonne: 'date',
-		    ordre: 'desc' // 'asc' ou 'desc'
-			// Variables pour la pagination
-			let currentPage = 1;
-			const transactionsPerPage = 20;
-		};
+		
+		// Variables pour la pagination
+		let currentPage = 1;
+		const transactionsPerPage = 5;
 
 		function trierTransactions(colonne) {
 		    // Inverser l'ordre si on clique sur la même colonne
@@ -3149,7 +3146,7 @@
 		        activeIcon.className = triActuel.ordre === 'asc' ? 'fas fa-sort-up' : 'fas fa-sort-down';
 		        activeIcon.style.opacity = '1';
 		    }
-			
+    
 		    currentPage = 1; // Reset la pagination lors d'un nouveau tri
     
 		    // Réafficher
@@ -3578,7 +3575,6 @@
 		        afficherCalendrier();    
 		    }
 		}
-}
 		
 		function afficherCalendrier() {
 		    const container = document.getElementById('calendar-container');
