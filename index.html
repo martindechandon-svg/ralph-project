@@ -3197,6 +3197,23 @@
 		    // 🔧 DÉTECTION FIABLE DU MOBILE
 		    const isMobile = window.matchMedia('(max-width: 768px)').matches;
 		    const itemsPerPage = isMobile ? 5 : transactions.length;
+			
+			const isMobile = window.matchMedia('(max-width: 768px)').matches;
+			const itemsPerPage = isMobile ? 5 : transactions.length;
+
+			// 🔧 DEBUG TEMPORAIRE
+			if (transactions.length > 5) {
+			    const debugDiv = document.createElement('div');
+			    debugDiv.style.cssText = 'position:fixed;top:100px;left:10px;background:red;color:white;padding:10px;z-index:9999;';
+			    debugDiv.innerHTML = `
+			        Mobile: ${isMobile}<br>
+			        Width: ${window.innerWidth}<br>
+			        Items/page: ${itemsPerPage}<br>
+			        Total: ${transactions.length}
+			    `;
+			    document.body.appendChild(debugDiv);
+			    setTimeout(() => debugDiv.remove(), 5000);
+			}
     
 		    console.log('📱 Mode mobile:', isMobile); // DEBUG
 		    console.log('📊 Transactions par page:', itemsPerPage); // DEBUG
