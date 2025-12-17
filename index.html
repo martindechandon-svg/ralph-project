@@ -4209,7 +4209,7 @@
 		    }
 
 		    try {
-		        // 🔥 CHARGER DEPUIS SUPABASE (SOURCE DE VÉRITÉ)
+		        // ✅ TOUJOURS charger depuis Supabase (source de vérité)
 		        const { data: monthData, error: monthError } = await supabase
 		            .from('months')
 		            .select('*')
@@ -4221,10 +4221,9 @@
 		            throw monthError;
 		        }
 
-		        // Si le mois n'existe pas dans Supabase
 		        if (!monthData) {
 		            showModal(`Le mois "${monthToLoad}" n'existe pas dans la base de données.`, 'error');
-		            // Nettoyer localStorage si incohérent
+		            // ✅ NETTOYER localStorage si incohérent
 		            let allData = JSON.parse(localStorage.getItem(STORAGE_KEY)) || {};
 		            delete allData[monthToLoad];
 		            localStorage.setItem(STORAGE_KEY, JSON.stringify(allData));
@@ -4232,7 +4231,7 @@
 		            return;
 		        }
 
-		        // 2. Charger les transactions du mois
+		        // ✅ Charger les transactions
 		        const { data: transactionsData, error: transError } = await supabase
 		            .from('transactions')
 		            .select('*')
@@ -4242,7 +4241,7 @@
 
 		        if (transError) throw transError;
 
-		        // 3. Reconstruire currentMonthData
+		        // ✅ Reconstruire currentMonthData DEPUIS SUPABASE
 		        currentMonthData = {
 		            transactions: (transactionsData || []).map(t => ({
 		                date: t.date,
@@ -4257,7 +4256,7 @@
 		            budgets: monthData.budgets || {}
 		        };
 
-		        // ✅ SYNCHRONISER DANS LOCALSTORAGE
+		        // ✅ SYNCHRONISER localStorage APRÈS (pas avant !)
 		        let allData = JSON.parse(localStorage.getItem(STORAGE_KEY)) || {};
 		        allData[monthToLoad] = JSON.stringify(currentMonthData);
 		        localStorage.setItem(STORAGE_KEY, JSON.stringify(allData));
@@ -4276,7 +4275,7 @@
 		        if (document.getElementById('analysis-screen').classList.contains('active')) {
 		            mettreAJourGraphique();
 		            await mettreAJourGraphiqueHistorique();
-				    await mettreAJourGraphiqueRevenusDepenses(); // ✅ AJOUT ICI
+		            await mettreAJourGraphiqueRevenusDepenses();
 		            mettreAJourSoldeEtTotaux();
 		            mettreAJourSuiviBudget();
 		        }
@@ -4393,7 +4392,7 @@
 		    if (!currentUser) return;
 
 		    try {
-		        // ✅ Charger UNIQUEMENT la liste des mois (sans transactions)
+		        // ✅ TOUJOURS charger depuis Supabase
 		        const { data: monthsData, error } = await supabase
 		            .from('months')
 		            .select('month_name, solde_ouverture, budgets')
@@ -4404,33 +4403,28 @@
 
 		        const monthNames = monthsData.map(m => m.month_name);
 
-		        // ✅ Stocker uniquement les infos de base dans localStorage (pas les transactions)
+		        // ✅ Mettre à jour localStorage comme BACKUP seulement
 		        let allData = {};
 		        monthsData.forEach(m => {
 		            allData[m.month_name] = JSON.stringify({
-		                transactions: [], // Vide - sera chargé à la demande
+		                transactions: [], // Sera chargé à la demande
 		                soldeOuverture: m.solde_ouverture,
 		                budgets: m.budgets
 		            });
 		        });
 		        localStorage.setItem(STORAGE_KEY, JSON.stringify(allData));
 
-		        // ✅ NE PAS mettre "new" si un mois est sélectionné ou s'il y a des mois
 		        if (selectedMonth && monthNames.includes(selectedMonth)) {
 		            currentMonthInput.value = selectedMonth;
 		        } else if (monthNames.length > 0) {
-		            // Charger le dernier mois par défaut
 		            currentMonthInput.value = monthNames[monthNames.length - 1];
 		        } else {
-		            // Aucun mois existant : créer le premier
 		            currentMonthInput.value = 'new';
 		        }
 
-		        // ✅ Charger les transactions SEULEMENT si ce n'est pas "new"
 		        if (currentMonthInput.value !== 'new') {
 		            await chargerTransactions();
 		        } else {
-		            // Premier démarrage : ouvrir le modal de création
 		            gererNouveauMois();
 		        }
         
