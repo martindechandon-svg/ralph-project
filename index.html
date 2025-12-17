@@ -3632,22 +3632,58 @@
 		    });
 		}
 
-        function getHistoricalBalances() {
-            let allData = JSON.parse(localStorage.getItem(STORAGE_KEY)) || {};
-            const monthNames = Object.keys(allData).sort(comparerMois);
-            const historicalData = monthNames.map(monthName => {
-                const rawData = allData[monthName] ? JSON.parse(allData[monthName]) : { transactions: [], soldeOuverture: 0 };
-                const { solde } = calculerSoldePrecedent(rawData);
-                return {
-                    month: monthName,
-                    balance: solde
-                };
-            });
-            return historicalData;
-        }
+		async function getHistoricalBalances() {
+		    if (!currentUser) return [];
+    
+		    try {
+		        // ✅ Charger directement depuis Supabase au lieu de localStorage
+		        const { data: monthsData, error } = await supabase
+		            .from('months')
+		            .select('month_name, solde_ouverture')
+		            .eq('user_id', currentUser.id)
+		            .order('created_at', { ascending: true });
 
-        function mettreAJourGraphiqueHistorique() {
-            const historicalData = getHistoricalBalances();
+		        if (error) throw error;
+
+		        const historicalData = [];
+        
+		        // ✅ Charger les transactions en parallèle
+		        const promises = monthsData.map(async (month) => {
+		            const { data: transactions } = await supabase
+		                .from('transactions')
+		                .select('type, montant')
+		                .eq('user_id', currentUser.id)
+		                .eq('month_name', month.month_name);
+            
+		            let totalRevenus = 0;
+		            let totalDepenses = 0;
+            
+		            (transactions || []).forEach(t => {
+		                if (t.type === 'revenu') {
+		                    totalRevenus += parseFloat(t.montant);
+		                } else {
+		                    totalDepenses += parseFloat(t.montant);
+		                }
+		            });
+            
+		            const solde = parseFloat(month.solde_ouverture) + totalRevenus - totalDepenses;
+            
+		            return {
+		                month: month.month_name,
+		                balance: solde
+		            };
+		        });
+        
+		        return await Promise.all(promises);
+        
+		    } catch (error) {
+		        console.error('Erreur getHistoricalBalances:', error);
+		        return [];
+		    }
+		}
+
+		async function mettreAJourGraphiqueHistorique() {
+		    const historicalData = await getHistoricalBalances();
             if (!document.getElementById('balance-history-chart')) return;
             if (historyChartInstance) {
                 historyChartInstance.destroy();
@@ -4129,7 +4165,7 @@
 		    if (!currentUser) return;
 
 		    try {
-		        // 🔥 CHARGER LA LISTE DEPUIS SUPABASE
+		        // ✅ Charger UNIQUEMENT la liste des mois (sans transactions)
 		        const { data: monthsData, error } = await supabase
 		            .from('months')
 		            .select('month_name, solde_ouverture, budgets')
@@ -4140,36 +4176,36 @@
 
 		        const monthNames = monthsData.map(m => m.month_name);
 
-		        // Backup dans localStorage
+		        // ✅ Stocker uniquement les infos de base dans localStorage (pas les transactions)
 		        let allData = {};
-		        for (const monthData of monthsData) {
-		            const { data: transactions } = await supabase
-		                .from('transactions')
-		                .select('*')
-		                .eq('user_id', currentUser.id)
-		                .eq('month_name', monthData.month_name);
-
-		            allData[monthData.month_name] = JSON.stringify({
-		                transactions: transactions || [],
-		                soldeOuverture: monthData.solde_ouverture,
-		                budgets: monthData.budgets
+		        monthsData.forEach(m => {
+		            allData[m.month_name] = JSON.stringify({
+		                transactions: [], // Vide - sera chargé à la demande
+		                soldeOuverture: m.solde_ouverture,
+		                budgets: m.budgets
 		            });
-		        }
+		        });
 		        localStorage.setItem(STORAGE_KEY, JSON.stringify(allData));
 
-		        if (selectedMonth) {
+		        // ✅ NE PAS mettre "new" si un mois est sélectionné ou s'il y a des mois
+		        if (selectedMonth && monthNames.includes(selectedMonth)) {
 		            currentMonthInput.value = selectedMonth;
 		        } else if (monthNames.length > 0) {
+		            // Charger le dernier mois par défaut
 		            currentMonthInput.value = monthNames[monthNames.length - 1];
 		        } else {
+		            // Aucun mois existant : créer le premier
 		            currentMonthInput.value = 'new';
 		        }
 
+		        // ✅ Charger les transactions SEULEMENT si ce n'est pas "new"
 		        if (currentMonthInput.value !== 'new') {
 		            await chargerTransactions();
 		        } else {
+		            // Premier démarrage : ouvrir le modal de création
 		            gererNouveauMois();
 		        }
+        
 		        mettreAJourTimeline();
 
 		    } catch (error) {
@@ -4177,7 +4213,6 @@
 		        showModal("Erreur lors du chargement des mois.", 'error');
 		    }
 		}
-
         function naviguerMois(direction) {
             const allData = JSON.parse(localStorage.getItem(STORAGE_KEY)) || {};
             const monthNames = Object.keys(allData).sort(comparerMois);
@@ -4195,39 +4230,62 @@
             }
         }
 
-		function mettreAJourTimeline() {
-		    const allData = JSON.parse(localStorage.getItem(STORAGE_KEY)) || {};
-		    const monthNames = Object.keys(allData).sort(comparerMois);
-		    monthTimeline.innerHTML = '';
+		async function mettreAJourTimeline() {
+		    if (!currentUser) return;
     
-		    // Utiliser currentMonthInput.value au lieu de selectMonth.value
-		    const currentActiveMonth = currentMonthInput.value;
-    
-		    monthNames.forEach(month => {
-		        const monthData = JSON.parse(allData[month]);
-		        const { solde } = calculerSoldePrecedent(monthData);
-		        const monthCard = document.createElement('div');
-		        monthCard.classList.add('timeline-month');
-		        if (currentActiveMonth === month) {
-		            monthCard.classList.add('active');
+		    try {
+		        // ✅ Charger UNIQUEMENT les infos de base des mois (pas les transactions)
+		        const { data: monthsData, error } = await supabase
+		            .from('months')
+		            .select('month_name, solde_ouverture, budgets')
+		            .eq('user_id', currentUser.id)
+		            .order('created_at', { ascending: true });
+
+		        if (error) throw error;
+
+		        monthTimeline.innerHTML = '';
+		        const currentActiveMonth = currentMonthInput.value;
+
+		        // ✅ Calculer les soldes rapidement sans charger toutes les transactions
+		        for (const monthData of monthsData) {
+		            const monthCard = document.createElement('div');
+		            monthCard.classList.add('timeline-month');
+		            if (currentActiveMonth === monthData.month_name) {
+		                monthCard.classList.add('active');
+		            }
+            
+		            // ✅ Calculer le solde uniquement si c'est le mois actif
+		            let solde = 0;
+		            if (currentActiveMonth === monthData.month_name) {
+		                const calc = calculerSolde();
+		                solde = calc.solde;
+		            } else {
+		                // Pour les autres mois, afficher juste "..."
+		                solde = null;
+		            }
+            
+		            monthCard.innerHTML = `
+		                <button class="delete-month-btn" onclick="supprimerMois('${monthData.month_name.replace(/'/g, "\\'")}'); event.stopPropagation();" title="Supprimer ce mois">
+		                    <i class="fas fa-times"></i>
+		                </button>
+		                <button class="edit-month-btn" onclick="renommerMois('${monthData.month_name.replace(/'/g, "\\'")}'); event.stopPropagation();" title="Renommer ce mois">
+		                    <i class="fas fa-edit"></i>
+		                </button>
+		                <div class="month-name">${monthData.month_name}</div>
+		                <div class="month-balance">${solde !== null ? (solde >= 0 ? '+' : '') + solde.toFixed(2) + ' €' : '...'}</div>
+		            `;
+            
+		            monthCard.onclick = () => {
+		                currentMonthInput.value = monthData.month_name;
+		                chargerTransactions();
+		            };
+		            monthTimeline.appendChild(monthCard);
 		        }
-				monthCard.innerHTML = `
-				    <button class="delete-month-btn" onclick="supprimerMois('${month.replace(/'/g, "\\'")}'); event.stopPropagation();" title="Supprimer ce mois">
-				        <i class="fas fa-times"></i>
-				    </button>
-				    <button class="edit-month-btn" onclick="renommerMois('${month.replace(/'/g, "\\'")}'); event.stopPropagation();" title="Renommer ce mois">
-				        <i class="fas fa-edit"></i>
-				    </button>
-				    <div class="month-name">${month}</div>
-				    <div class="month-balance">${solde >= 0 ? '+' : ''}${solde.toFixed(2)} €</div>
-				`;
-		        monthCard.onclick = () => {
-		            currentMonthInput.value = month;
-		            chargerTransactions();
-		        };
-		        monthTimeline.appendChild(monthCard);
-		    });
+		    } catch (error) {
+		        console.error('Erreur timeline:', error);
+		    }
 		}
+		
 		async function supprimerMois(monthName) {
 		    const confirmed = await showConfirm(
 		        `Êtes-vous sûr de vouloir supprimer DÉFINITIVEMENT le mois "${monthName}" et toutes ses transactions ?`,
@@ -4452,56 +4510,79 @@
         function closeNewMonthModal() {
             newMonthModal.classList.remove('active');
         }
-        function createNewMonthFromModal() {
-            const monthName = newMonthNameInput.value.trim();
-            const openingBalance = parseFloat(newMonthOpeningBalanceInput.value) || 0;
-            if (!monthName) {
-                showModal("Veuillez entrer un nom pour le nouveau mois.", 'error');
-                return;
-            }
-            
-            // Vérifier si un mois avec ce nom existe déjà
-            let allData = JSON.parse(localStorage.getItem(STORAGE_KEY)) || {};
-            if (allData[monthName]) {
-                showModal(`Un mois nommé "${monthName}" existe déjà. Veuillez choisir un autre nom.`, 'error');
-                return;
-            }
-            
-            // Créer un NOUVEAU mois (sans toucher au mois actuel)
-            const newMonthData = {
-                transactions: [],
-                soldeOuverture: openingBalance,
-                budgets: {}
-            };
-            
-            // Sauvegarder le nouveau mois IMMÉDIATEMENT
-            allData[monthName] = JSON.stringify(newMonthData);
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(allData));
-            localStorage.setItem(LAST_SAVE_KEY, new Date().toISOString());
-            
-            // Charger ce nouveau mois comme mois actuel
-            currentMonthData = newMonthData;
-            transactions = currentMonthData.transactions;
-            currentMonthInput.value = monthName;
-            soldeOuvertureInput.value = openingBalance.toFixed(2);
-            
-            // Mettre à jour le sélecteur de mois AVANT de recharger
-            if (selectMonth) {
-                selectMonth.value = monthName;
-            }
-            
-            genererChampsBudget();
-            rechargerTableau();
-            mettreAJourSoldeEtTotaux();
-            mettreAJourTimeline();
-            
-            // Mettre à jour l'indicateur de position
-            const monthNames = Object.keys(allData).sort(comparerMois);
-            monthPositionIndicator.textContent = `${monthNames.length}/${monthNames.length} mois`;
-            
-            showToast(`Nouvel onglet "${monthName}" créé avec succès !`, 'success');
-            closeNewMonthModal();
-        }
+		async function createNewMonthFromModal() {
+		    const monthName = newMonthNameInput.value.trim();
+		    const openingBalance = parseFloat(newMonthOpeningBalanceInput.value) || 0;
+    
+		    if (!monthName) {
+		        showModal("Veuillez entrer un nom pour le nouveau mois.", 'error');
+		        return;
+		    }
+    
+		    if (!currentUser) {
+		        showModal("Erreur: utilisateur non connecté.", 'error');
+		        return;
+		    }
+    
+		    try {
+		        // ✅ VÉRIFIER SI LE MOIS EXISTE DÉJÀ DANS SUPABASE
+		        const { data: existingMonth } = await supabase
+		            .from('months')
+		            .select('month_name')
+		            .eq('user_id', currentUser.id)
+		            .eq('month_name', monthName)
+		            .single();
+        
+		        if (existingMonth) {
+		            showModal(`Un mois nommé "${monthName}" existe déjà. Veuillez choisir un autre nom.`, 'error');
+		            return;
+		        }
+        
+		        // ✅ Créer le nouveau mois dans SUPABASE
+		        const { error: insertError } = await supabase
+		            .from('months')
+		            .insert({
+		                user_id: currentUser.id,
+		                month_name: monthName,
+		                solde_ouverture: openingBalance,
+		                budgets: {}
+		            });
+        
+		        if (insertError) throw insertError;
+        
+		        // ✅ Créer aussi dans localStorage
+		        let allData = JSON.parse(localStorage.getItem(STORAGE_KEY)) || {};
+		        allData[monthName] = JSON.stringify({
+		            transactions: [],
+		            soldeOuverture: openingBalance,
+		            budgets: {}
+		        });
+		        localStorage.setItem(STORAGE_KEY, JSON.stringify(allData));
+		        localStorage.setItem(LAST_SAVE_KEY, new Date().toISOString());
+        
+		        // ✅ Charger ce nouveau mois
+		        currentMonthData = {
+		            transactions: [],
+		            soldeOuverture: openingBalance,
+		            budgets: {}
+		        };
+		        transactions = currentMonthData.transactions;
+		        currentMonthInput.value = monthName;
+		        soldeOuvertureInput.value = openingBalance.toFixed(2);
+        
+		        genererChampsBudget();
+		        rechargerTableau();
+		        mettreAJourSoldeEtTotaux();
+		        await mettreAJourTimeline();
+        
+		        showToast(`✅ Nouvel onglet "${monthName}" créé avec succès !`, 'success');
+		        closeNewMonthModal();
+        
+		    } catch (error) {
+		        console.error('Erreur création mois:', error);
+		        showModal("Erreur lors de la création : " + error.message, 'error');
+		    }
+		}
 
         // --- LOGIQUE D'IMPORT/EXPORT ---
         function exportToCSV() {
