@@ -3099,11 +3099,14 @@
 		        return true;
 		    });
     
-		    afficherTransactionsFiltrees(transactionsFiltrees);
+		    afficherTransactionsFiltrees(transactionsFiltrees, false); // Ne pas reset la page
 		}
 		let triActuel = {
 		    colonne: 'date',
 		    ordre: 'desc' // 'asc' ou 'desc'
+			// Variables pour la pagination
+			let currentPage = 1;
+			const transactionsPerPage = 20;
 		};
 
 		function trierTransactions(colonne) {
@@ -3146,6 +3149,8 @@
 		        activeIcon.className = triActuel.ordre === 'asc' ? 'fas fa-sort-up' : 'fas fa-sort-down';
 		        activeIcon.style.opacity = '1';
 		    }
+			
+		    currentPage = 1; // Reset la pagination lors d'un nouveau tri
     
 		    // Réafficher
 		    if (Object.values(filtresActifs).some(v => v !== '')) {
@@ -3155,17 +3160,26 @@
 		    }
 		}
 
-		function afficherTransactionsFiltrees(transactions) {
-		    transactionList.innerHTML = '';
-    
-		    // Supprimer l'ancien message s'il existe
-		    const oldCountInfo = document.getElementById('filter-count-info');
-		    if (oldCountInfo) {
-		        oldCountInfo.remove();
+		function afficherTransactionsFiltrees(transactions, resetPage = false) {
+		    if (resetPage) {
+		        currentPage = 1;
 		    }
     
-		    transactions.forEach((t, index) => {
-		        // Trouver l'index réel dans le tableau complet
+		    const startIndex = 0;
+		    const endIndex = currentPage * transactionsPerPage;
+		    const transactionsAffichees = transactions.slice(startIndex, endIndex);
+		    const hasMore = endIndex < transactions.length;
+    
+		    transactionList.innerHTML = '';
+    
+		    // Supprimer l'ancien message et bouton
+		    const oldCountInfo = document.getElementById('filter-count-info');
+		    if (oldCountInfo) oldCountInfo.remove();
+    
+		    const oldLoadMore = document.getElementById('load-more-btn');
+		    if (oldLoadMore) oldLoadMore.remove();
+    
+		    transactionsAffichees.forEach((t) => {
 		        const realIndex = currentMonthData.transactions.indexOf(t);
         
 		        const row = transactionList.insertRow();
@@ -3185,23 +3199,42 @@
 		        deleteButton.classList.add('app-btn', 'delete-btn');
 		        deleteButton.onclick = function() { supprimerTransaction(realIndex); };
 		        deleteCell.appendChild(deleteButton);
+        
+		        // Mobile : clic sur la ligne
+		        if (window.innerWidth <= 768) {
+		            row.onclick = function(e) {
+		                if (e.target.tagName !== 'BUTTON' && !e.target.closest('button')) {
+		                    supprimerTransactionMobile(realIndex, row, t);
+		                }
+		            };
+		        }
 		    });
     
-		    // Afficher le nombre de résultats (avec un ID unique pour pouvoir le supprimer)
-		    if (transactions.length !== currentMonthData.transactions.length) {
-		        const countInfo = document.createElement('p');
-		        countInfo.id = 'filter-count-info';
-		        countInfo.style.color = 'var(--light-text-color)';
-		        countInfo.style.marginTop = '10px';
-		        countInfo.style.fontStyle = 'italic';
-		        countInfo.innerHTML = `<i class="fas fa-filter"></i> ${transactions.length} transaction(s) affichée(s) sur ${currentMonthData.transactions.length}`;
+		    // Afficher le compteur
+		    const countInfo = document.createElement('p');
+		    countInfo.id = 'filter-count-info';
+		    countInfo.style.cssText = 'color: var(--light-text-color); margin-top: 10px; font-style: italic; text-align: center;';
+		    countInfo.innerHTML = `<i class="fas fa-list"></i> Affichage de ${transactionsAffichees.length} sur ${transactions.length} transaction(s)`;
+    
+		    const table = transactionList.closest('table');
+		    if (table) {
+		        table.parentNode.insertBefore(countInfo, table.nextSibling);
+		    }
+    
+		    // Bouton "Voir plus" si nécessaire
+		    if (hasMore) {
+		        const loadMoreBtn = document.createElement('button');
+		        loadMoreBtn.id = 'load-more-btn';
+		        loadMoreBtn.className = 'app-btn save-btn';
+		        loadMoreBtn.style.cssText = 'width: 100%; margin-top: 15px; display: flex; align-items: center; justify-content: center; gap: 8px;';
+		        loadMoreBtn.innerHTML = `<i class="fas fa-chevron-down"></i> Voir plus (${transactions.length - endIndex} restantes)`;
+		        loadMoreBtn.onclick = () => {
+		            currentPage++;
+		            appliquerFiltres();
+		        };
         
-		        // Insérer après le tableau
-		        const table = transactionList.closest('table');
-		        if (table && table.nextSibling) {
-		            table.parentNode.insertBefore(countInfo, table.nextSibling);
-		        } else if (table) {
-		            table.parentNode.appendChild(countInfo);
+		        if (table) {
+		            table.parentNode.insertBefore(loadMoreBtn, countInfo.nextSibling);
 		        }
 		    }
 		}
@@ -3213,6 +3246,8 @@
 		        categorie: '',
 		        compte: ''
 		    };
+    
+		    currentPage = 1; // Reset la pagination
     
 		    document.getElementById('search-input').value = '';
 		    document.getElementById('filter-type').value = '';
@@ -3519,47 +3554,30 @@
 		    currentMonthDisplay.textContent = currentMonthInput.value;
 		}
 
-        function rechargerTableau() {
-            transactionList.innerHTML = '';
-			
+		function rechargerTableau() {
+		    currentPage = 1; // Reset la pagination
+    
+		    transactionList.innerHTML = '';
+    
 		    const oldCountInfo = document.getElementById('filter-count-info');
 		    if (oldCountInfo) {
 		        oldCountInfo.remove();
 		    }
-			currentMonthData.transactions.forEach((t, index) => {
-			    const row = transactionList.insertRow();
-			    row.classList.add(t.type === 'revenu' ? 'revenue-row' : 'expense-row');
-			    row.insertCell(0).textContent = t.date;
-			    row.insertCell(1).textContent = t.description;
-			    row.insertCell(2).textContent = t.type === 'revenu' ? 'Revenu' : 'Dépense';
-			    row.insertCell(3).textContent = t.categorie;
-			    row.insertCell(4).textContent = t.compte;
-			    const montantFormatte = t.type === 'revenu' ?
-			                            '+' + t.montant.toFixed(2) :
-			                            '-' + t.montant.toFixed(2);
-			    row.insertCell(5).textContent = montantFormatte;
-			    const deleteCell = row.insertCell(6);
-			    const deleteButton = document.createElement('button');
-			    deleteButton.innerHTML = '<i class="fas fa-trash-alt"></i>';
-			    deleteButton.classList.add('app-btn', 'delete-btn');
-			    deleteButton.onclick = function(e) { 
-			        e.stopPropagation(); 
-			        supprimerTransaction(index); 
-			    };
-			    deleteCell.appendChild(deleteButton);
     
-			    // 📱 AJOUT : Clic sur la ligne entière pour supprimer (mobile uniquement)
-			    if (window.innerWidth <= 768) {
-			        row.onclick = function() {
-			            supprimerTransactionMobile(index, row, t);
-			        };
-			    }
-			});
-            mettreAJourSoldeEtTotaux();
-            mettreAJourSuiviBudget();
+		    const oldLoadMore = document.getElementById('load-more-btn');
+		    if (oldLoadMore) {
+		        oldLoadMore.remove();
+		    }
+    
+		    // Utiliser la fonction de pagination
+		    afficherTransactionsFiltrees(currentMonthData.transactions, true);
+    
+		    mettreAJourSoldeEtTotaux();
+		    mettreAJourSuiviBudget();
 		    if (document.getElementById('calendar-screen').classList.contains('active')) {
 		        afficherCalendrier();    
-			}
+		    }
+		}
 }
 		
 		function afficherCalendrier() {
