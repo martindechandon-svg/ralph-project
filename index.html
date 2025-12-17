@@ -4364,6 +4364,8 @@
 		    }
 
 		    try {
+		        console.log('🔄 Chargement des transactions pour:', monthToLoad); // DEBUG
+        
 		        // ✅ TOUJOURS charger depuis Supabase (source de vérité)
 		        const { data: monthData, error: monthError } = await supabase
 		            .from('months')
@@ -4378,7 +4380,6 @@
 
 		        if (!monthData) {
 		            showModal(`Le mois "${monthToLoad}" n'existe pas dans la base de données.`, 'error');
-		            // ✅ NETTOYER localStorage si incohérent
 		            let allData = JSON.parse(localStorage.getItem(STORAGE_KEY)) || {};
 		            delete allData[monthToLoad];
 		            localStorage.setItem(STORAGE_KEY, JSON.stringify(allData));
@@ -4395,6 +4396,8 @@
 		            .order('date', { ascending: false });
 
 		        if (transError) throw transError;
+
+		        console.log('📊 Transactions chargées:', transactionsData ? transactionsData.length : 0); // DEBUG
 
 		        // ✅ Reconstruire currentMonthData DEPUIS SUPABASE
 		        currentMonthData = {
@@ -4420,7 +4423,10 @@
 		        currentMonthInput.value = monthToLoad;
 		        soldeOuvertureInput.value = currentMonthData.soldeOuverture.toFixed(2);
 		        genererChampsBudget();
+        
+		        console.log('🔄 Appel de rechargerTableau()'); // DEBUG
 		        rechargerTableau();
+        
 		        mettreAJourTimeline();
 
 		        if (document.getElementById('calendar-screen').classList.contains('active')) {
@@ -4434,8 +4440,10 @@
 		            mettreAJourSoldeEtTotaux();
 		            mettreAJourSuiviBudget();
 		        }
+        
+		        console.log('✅ Chargement terminé'); // DEBUG
 		    } catch (error) {
-		        console.error('Erreur lors du chargement:', error);
+		        console.error('❌ Erreur lors du chargement:', error);
 		        showModal("Erreur lors du chargement : " + error.message, 'error');
 		    }
 		}
