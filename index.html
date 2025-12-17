@@ -3598,21 +3598,19 @@
 		}
 
 		function rechargerTableau() {
-		    currentPage = 1; // Reset la pagination
-    
+		    currentPage = 1;
 		    transactionList.innerHTML = '';
     
 		    const oldCountInfo = document.getElementById('filter-count-info');
-		    if (oldCountInfo) {
-		        oldCountInfo.remove();
-		    }
+		    if (oldCountInfo) oldCountInfo.remove();
     
 		    const oldLoadMore = document.getElementById('load-more-btn');
-		    if (oldLoadMore) {
-		        oldLoadMore.remove();
-		    }
+		    if (oldLoadMore) oldLoadMore.remove();
     
-		    // Utiliser la fonction de pagination
+		    // 🔧 FORCER LA DÉTECTION MOBILE ICI
+		    const isMobile = window.innerWidth <= 768;
+		    console.log('📱 rechargerTableau - Mobile:', isMobile, 'Width:', window.innerWidth);
+    
 		    afficherTransactionsFiltrees(currentMonthData.transactions, true);
     
 		    mettreAJourSoldeEtTotaux();
