@@ -3966,110 +3966,138 @@
 		
 		let revenueExpenseChartInstance;
 
-		function mettreAJourGraphiqueRevenusDepenses() {
-		    const allData = JSON.parse(localStorage.getItem(STORAGE_KEY)) || {};
-		    const monthNames = Object.keys(allData).sort(comparerMois);
-    
-		    const monthLabels = [];
-		    const revenuesData = [];
-		    const depensesData = [];
-    
-		    monthNames.forEach(monthName => {
-		        const monthData = JSON.parse(allData[monthName]);
-		        let totalRevenu = 0;
-		        let totalDepense = 0;
-        
-		        monthData.transactions.forEach(t => {
-		            if (t.type === 'revenu') {
-		                totalRevenu += t.montant;
-		            } else {
-		                totalDepense += t.montant;
-		            }
-		        });
-        
-		        monthLabels.push(monthName);
-		        revenuesData.push(totalRevenu);
-		        depensesData.push(totalDepense);
-		    });
-    
-		    const canvas = document.getElementById('revenue-expense-chart');
-		    if (!canvas) return;
-    
-		    if (revenueExpenseChartInstance) {
-		        revenueExpenseChartInstance.destroy();
-		    }
-    
-		    const textColor = body.classList.contains('light-mode') ? '#212529' : '#E0E0FF';
-		    const ctx = canvas.getContext('2d');
-    
-		    revenueExpenseChartInstance = new Chart(ctx, {
-		        type: 'bar',
-		        data: {
-		            labels: monthLabels,
-		            datasets: [
-		                {
-		                    label: 'Revenus',
-		                    data: revenuesData,
-		                    backgroundColor: 'rgba(0, 255, 153, 0.6)',
-		                    borderColor: '#00FF99',
-		                    borderWidth: 2
-		                },
-		                {
-		                    label: 'Dépenses',
-		                    data: depensesData,
-		                    backgroundColor: 'rgba(255, 51, 102, 0.6)',
-		                    borderColor: '#FF3366',
-		                    borderWidth: 2
+		async function mettreAJourGraphiqueRevenusDepenses() {
+		    if (!currentUser) return;
+
+		    try {
+		        // ✅ Charger depuis Supabase au lieu de localStorage
+		        const { data: monthsData, error } = await supabase
+		            .from('months')
+		            .select('month_name, solde_ouverture')
+		            .eq('user_id', currentUser.id)
+		            .order('created_at', { ascending: true });
+
+		        if (error) throw error;
+
+		        const monthLabels = [];
+		        const revenuesData = [];
+		        const depensesData = [];
+
+		        // ✅ Charger les transactions en parallèle pour chaque mois
+		        const promises = monthsData.map(async (month) => {
+		            const { data: transactions } = await supabase
+		                .from('transactions')
+		                .select('type, montant')
+		                .eq('user_id', currentUser.id)
+		                .eq('month_name', month.month_name);
+
+		            let totalRevenu = 0;
+		            let totalDepense = 0;
+
+		            (transactions || []).forEach(t => {
+		                if (t.type === 'revenu') {
+		                    totalRevenu += parseFloat(t.montant);
+		                } else {
+		                    totalDepense += parseFloat(t.montant);
 		                }
-		            ]
-		        },
-		        options: {
-		            responsive: true,
-		            maintainAspectRatio: true,
-		            plugins: {
-		                legend: {
-		                    labels: {
-		                        color: textColor,
-		                        font: { family: 'Poppins', size: 12 }
+		            });
+
+		            return {
+		                month: month.month_name,
+		                revenus: totalRevenu,
+		                depenses: totalDepense
+		            };
+		        });
+
+		        const results = await Promise.all(promises);
+
+		        results.forEach(result => {
+		            monthLabels.push(result.month);
+		            revenuesData.push(result.revenus);
+		            depensesData.push(result.depenses);
+		        });
+
+		        const canvas = document.getElementById('revenue-expense-chart');
+		        if (!canvas) return;
+
+		        if (revenueExpenseChartInstance) {
+		            revenueExpenseChartInstance.destroy();
+		        }
+
+		        const textColor = body.classList.contains('light-mode') ? '#212529' : '#E0E0FF';
+		        const ctx = canvas.getContext('2d');
+
+		        revenueExpenseChartInstance = new Chart(ctx, {
+		            type: 'bar',
+		            data: {
+		                labels: monthLabels,
+		                datasets: [
+		                    {
+		                        label: 'Revenus',
+		                        data: revenuesData,
+		                        backgroundColor: 'rgba(0, 255, 153, 0.6)',
+		                        borderColor: '#00FF99',
+		                        borderWidth: 2
+		                    },
+		                    {
+		                        label: 'Dépenses',
+		                        data: depensesData,
+		                        backgroundColor: 'rgba(255, 51, 102, 0.6)',
+		                        borderColor: '#FF3366',
+		                        borderWidth: 2
+		                    }
+		                ]
+		            },
+		            options: {
+		                responsive: true,
+		                maintainAspectRatio: true,
+		                plugins: {
+		                    legend: {
+		                        labels: {
+		                            color: textColor,
+		                            font: { family: 'Poppins', size: 12 }
+		                        }
+		                    },
+		                    tooltip: {
+		                        callbacks: {
+		                            label: function(context) {
+		                                return context.dataset.label + ': ' + context.formattedValue + ' €';
+		                            }
+		                        }
 		                    }
 		                },
-		                tooltip: {
-		                    callbacks: {
-		                        label: function(context) {
-		                            return context.dataset.label + ': ' + context.formattedValue + ' €';
+		                scales: {
+		                    y: {
+		                        beginAtZero: true,
+		                        title: {
+		                            display: true,
+		                            text: 'Montant (€)',
+		                            color: textColor,
+		                            font: { family: 'Poppins' }
+		                        },
+		                        ticks: {
+		                            color: textColor,
+		                            font: { family: 'Poppins' }
+		                        },
+		                        grid: {
+		                            color: body.classList.contains('light-mode') ? 'rgba(0, 0, 0, 0.1)' : 'rgba(255, 255, 255, 0.1)'
+		                        }
+		                    },
+		                    x: {
+		                        ticks: {
+		                            color: textColor,
+		                            font: { family: 'Poppins' }
+		                        },
+		                        grid: {
+		                            display: false
 		                        }
 		                    }
 		                }
-		            },
-		            scales: {
-		                y: {
-		                    beginAtZero: true,
-		                    title: {
-		                        display: true,
-		                        text: 'Montant (€)',
-		                        color: textColor,
-		                        font: { family: 'Poppins' }
-		                    },
-		                    ticks: {
-		                        color: textColor,
-		                        font: { family: 'Poppins' }
-		                    },
-		                    grid: {
-		                        color: body.classList.contains('light-mode') ? 'rgba(0, 0, 0, 0.1)' : 'rgba(255, 255, 255, 0.1)'
-		                    }
-		                },
-		                x: {
-		                    ticks: {
-		                        color: textColor,
-		                        font: { family: 'Poppins' }
-		                    },
-		                    grid: {
-		                        display: false
-		                    }
-		                }
 		            }
-		        }
-		    });
+		        });
+		    } catch (error) {
+		        console.error('Erreur graphique revenus/dépenses:', error);
+		    }
 		}
 
 		async function sauvegarderTransactions(showMessage = true) {
@@ -4248,6 +4276,7 @@
 		        if (document.getElementById('analysis-screen').classList.contains('active')) {
 		            mettreAJourGraphique();
 		            await mettreAJourGraphiqueHistorique();
+				    await mettreAJourGraphiqueRevenusDepenses(); // ✅ AJOUT ICI
 		            mettreAJourSoldeEtTotaux();
 		            mettreAJourSuiviBudget();
 		        }
